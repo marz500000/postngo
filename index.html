@@ -440,13 +440,11 @@ body{
   <button id="dl-btn" class="dl-btn" onclick="doDownload()">Download Post (1080x1080)</button>
   <div id="dl-status" style="text-align:center;font-size:12px;color:#5a8a78;margin-top:8px;min-height:16px"></div>
   <div id="img-container" style="display:none;margin-top:12px">
-    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">Best on iPhone: press and hold the image below to Copy, Share, or Save to Photos. Downloads go to Files.</div>
+    <div style="font-size:11px;color:#5a8a78;margin-bottom:8px;text-align:center">Generated image. On iPhone, press and hold the image itself to Copy, Share, or Save to Photos. Downloads go to Files.</div>
     <img id="out-img" style="width:100%;border-radius:8px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <button id="show-image-btn" type="button" onclick="focusRenderedImage()" style="padding:10px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:12px;font-weight:bold">Show Image Below</button>
-      <a id="save-image-link" href="#" download="postngo-post.png" style="text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Download File</a>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <a id="save-image-link" href="#" download="postngo-post.png" style="flex:1;text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Download File</a>
     </div>
-    <div style="font-size:11px;color:#5f7a70;margin-top:8px;text-align:center">On iPhone, long-press the image for Copy, Share, or Save Image. This works better than browser share buttons.</div>
   </div>
 </div>
 <div id="custom-modal" class="modal-overlay">
@@ -1781,7 +1779,7 @@ function doDownload(){
       var started=tryAutoDownload(lastRenderedObjectURL || src);
       var isiPhone=/iPhone|iPad|iPod/i.test(navigator.userAgent||"");
       status.textContent=isiPhone
-        ? "Image is ready below. Press and hold the image to Copy, Share, or Save to Photos."
+        ? "Generated image is shown below. Press and hold the image to Copy, Share, or Save to Photos."
         : (started
           ? "Image is ready below. If it did not save automatically, use Share to Apps, Download File, or Open Image."
           : "Image is ready below. Use Share to Apps, Download File, or Open Image.");
@@ -2263,77 +2261,141 @@ if(document.readyState==="loading"){
     clearTimeout(toastTimer);
     toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1700);
   };
-  window.pngRefreshBar=function(){
-    var main=document.getElementById('main-screen');
-    var preview=document.getElementById('preview-screen');
-    var inPreview=preview && preview.style.display!=='none';
-    var hasCurrent=typeof curCap==='string' && !!curCap.trim();
-    var hasCards=!!document.querySelector('.cap-card');
-    var btnGen=document.getElementById('png-act-generate');
-    var btnPrev=document.getElementById('png-act-preview');
-    var btnSave=document.getElementById('png-act-save');
-    if(!btnGen||!btnPrev||!btnSave) return;
-    btnGen.textContent=inPreview ? 'Back' : 'Generate';
-    btnPrev.textContent=inPreview ? 'Refresh' : 'Preview';
-    btnSave.textContent=inPreview ? 'Save' : 'Quick Save';
-    btnPrev.disabled=(!inPreview && !(hasCurrent||hasCards));
-    btnSave.disabled=(!inPreview && !hasCurrent);
-  };
-  window.pngQuickGenerate=function(){
-    var preview=document.getElementById('preview-screen');
-    var inPreview=preview && preview.style.display!=='none';
-    if(inPreview){ backToMain(); pngShowToast('Back to editor'); pngRefreshBar(); return; }
-    try{ generate(); pngShowToast('Captions generated'); }catch(e){ pngShowToast('Could not generate yet'); }
-    setTimeout(pngRefreshBar, 60);
-  };
-  window.pngQuickPreview=function(){
-    var preview=document.getElementById('preview-screen');
-    var inPreview=preview && preview.style.display!=='none';
-    if(inPreview){
-      try{ renderPreview(); pngShowToast('Preview refreshed'); }catch(e){ pngShowToast('Preview refreshed'); }
-      return;
-    }
-    if(typeof curCap==='string' && curCap.trim()){
-      try{ openPreview(curCap, curPillarId||''); pngShowToast('Opened preview'); }catch(e){}
-      setTimeout(pngRefreshBar, 60);
-      return;
-    }
-    var firstPreview=document.querySelector('.cap-card .cap-btn');
-    if(firstPreview){ firstPreview.click(); pngShowToast('Opened preview'); setTimeout(pngRefreshBar, 60); return; }
-    pngShowToast('Generate or choose a caption first');
-  };
-  window.pngQuickSave=function(){
-    var preview=document.getElementById('preview-screen');
-    var inPreview=preview && preview.style.display!=='none';
-    if(inPreview){
-      try{ doSave(); pngShowToast('Saved caption'); }catch(e){ pngShowToast('Could not save'); }
-      return;
-    }
-    if(typeof curCap==='string' && curCap.trim()){
-      try{ openPreview(curCap, curPillarId||''); setTimeout(function(){ doSave(); pngShowToast('Saved caption'); pngRefreshBar(); }, 80); }catch(e){ pngShowToast('Open a caption first'); }
-      return;
-    }
-    pngShowToast('Open a caption first');
-  };
-
-  function wrap(fnName, before, after){
-    if(typeof window[fnName]!=='function') return;
-    var old=window[fnName];
-    window[fnName]=function(){
-      if(before) before.apply(this, arguments);
-      var out=old.apply(this, arguments);
-      if(after) after.apply(this, arguments);
-      return out;
-    };
+  
+function pngIsPreviewVisible(){
+  var preview=document.getElementById('preview-screen');
+  return !!(preview && window.getComputedStyle(preview).display !== 'none');
+}
+function pngCurrentPage(){
+  var ids=['pg-gen','pg-batch','pg-saved','pg-tracker','pg-settings'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el && window.getComputedStyle(el).display !== 'none') return ids[i];
   }
-  wrap('generate', null, function(){ setTimeout(pngRefreshBar, 40); });
-  wrap('openPreview', null, function(){ setTimeout(pngRefreshBar, 40); });
-  wrap('backToMain', null, function(){ setTimeout(pngRefreshBar, 40); });
-  wrap('doCopyBtn', null, function(){ pngShowToast('Copied to clipboard'); });
-  wrap('doSave', null, function(){ pngShowToast('Saved to captions'); setTimeout(pngRefreshBar, 40); });
-  wrap('doDownload', null, function(){ pngShowToast('Building your post'); });
-  wrap('saveSettings', null, function(){ pngShowToast('Settings saved'); });
-  wrap('switchProfile', null, function(){ pngShowToast('Profile updated'); setTimeout(pngRefreshBar, 40); });
+  return 'pg-gen';
+}
+window.pngRefreshBar=function(){
+  var bar=document.getElementById('png-sticky-bar');
+  var inPreview=pngIsPreviewVisible();
+  var page=pngCurrentPage();
+  var hasCurrent=typeof curCap==='string' && !!curCap.trim();
+  var hasCards=!!document.querySelector('.cap-card');
+  var btnGen=document.getElementById('png-act-generate');
+  var btnPrev=document.getElementById('png-act-preview');
+  var btnSave=document.getElementById('png-act-save');
+  if(!bar||!btnGen||!btnPrev||!btnSave) return;
+
+  if(inPreview){
+    bar.style.display='flex';
+    btnGen.textContent='Back';
+    btnPrev.textContent='Refresh';
+    btnSave.textContent='Save';
+    btnGen.disabled=false;
+    btnPrev.disabled=false;
+    btnSave.disabled=!hasCurrent;
+    return;
+  }
+
+  if(page!=='pg-gen'){
+    bar.style.display='none';
+    return;
+  }
+
+  bar.style.display='flex';
+  btnGen.textContent='Generate';
+  btnPrev.textContent='Preview';
+  btnSave.textContent='Save';
+  btnGen.disabled=false;
+  btnPrev.disabled=!(hasCurrent||hasCards);
+  btnSave.disabled=!hasCurrent;
+};
+window.pngQuickGenerate=function(){
+  var inPreview=pngIsPreviewVisible();
+  if(inPreview){
+    backToMain();
+    pngShowToast('Back to editor');
+    setTimeout(pngRefreshBar, 40);
+    return;
+  }
+  try{
+    generate();
+    pngShowToast('Captions generated');
+  }catch(e){
+    pngShowToast('Could not generate yet');
+  }
+  setTimeout(pngRefreshBar, 60);
+};
+window.pngQuickPreview=function(){
+  var inPreview=pngIsPreviewVisible();
+  if(inPreview){
+    try{
+      renderPreview();
+      pngShowToast('Preview refreshed');
+    }catch(e){
+      pngShowToast('Preview refreshed');
+    }
+    return;
+  }
+  if(typeof curCap==='string' && curCap.trim()){
+    try{
+      openPreview(curCap, curPillarId||'');
+      pngShowToast('Opened preview');
+    }catch(e){}
+    setTimeout(pngRefreshBar, 60);
+    return;
+  }
+  var firstPreview=document.querySelector('.cap-card .cap-btn');
+  if(firstPreview){
+    firstPreview.click();
+    pngShowToast('Opened preview');
+    setTimeout(pngRefreshBar, 60);
+    return;
+  }
+  pngShowToast('Generate or choose a caption first');
+};
+window.pngQuickSave=function(){
+  var inPreview=pngIsPreviewVisible();
+  if(inPreview){
+    try{
+      doSave();
+      pngShowToast('Saved caption');
+    }catch(e){
+      pngShowToast('Could not save');
+    }
+    return;
+  }
+  if(typeof curCap==='string' && curCap.trim()){
+    try{
+      saveCaption(curCap, curPillarId||'Saved');
+      pngShowToast('Saved caption');
+      setTimeout(function(){ try{ loadSaved(); }catch(e){} pngRefreshBar(); }, 80);
+    }catch(e){
+      pngShowToast('Could not save');
+    }
+    return;
+  }
+  pngShowToast('Open a caption first');
+};
+
+function wrap(fnName, before, after){
+  if(typeof window[fnName]!=='function') return;
+  var old=window[fnName];
+  window[fnName]=function(){
+    if(before) before.apply(this, arguments);
+    var out=old.apply(this, arguments);
+    if(after) after.apply(this, arguments);
+    return out;
+  };
+}
+wrap('generate', null, function(){ setTimeout(pngRefreshBar, 40); });
+wrap('openPreview', null, function(){ setTimeout(pngRefreshBar, 40); });
+wrap('backToMain', null, function(){ setTimeout(pngRefreshBar, 40); });
+wrap('doCopyBtn', null, function(){ pngShowToast('Copied to clipboard'); });
+wrap('doSave', null, function(){ pngShowToast('Saved to captions'); setTimeout(pngRefreshBar, 40); });
+wrap('doDownload', null, function(){ pngShowToast('Building your post'); });
+wrap('saveSettings', null, function(){ pngShowToast('Settings saved'); });
+wrap('switchProfile', null, function(){ setTimeout(pngRefreshBar, 50); });
+wrap('go', null, function(){ setTimeout(pngRefreshBar, 50); });
   wrap('go', null, function(){ setTimeout(pngRefreshBar, 40); });
 
   document.addEventListener('DOMContentLoaded', function(){
@@ -2417,35 +2479,6 @@ function generateHooks(){
 }
 
 
-function focusRenderedImage(){
-  var img=document.getElementById("out-img");
-  var status=document.getElementById("dl-status");
-  if(!img || !img.src){
-    if(status) status.textContent="Build the image first.";
-    return;
-  }
-  try{
-    img.scrollIntoView({behavior:"smooth", block:"center"});
-    img.style.boxShadow="0 0 0 2px rgba(106,186,168,.65), 0 10px 30px rgba(0,0,0,.35)";
-    setTimeout(function(){ try{ img.style.boxShadow=""; }catch(e){} }, 1800);
-  }catch(e){}
-  if(status) status.textContent="Image ready below. On iPhone, press and hold the image to Copy, Share, or Save to Photos.";
-}
-async function doShareRenderedImage(){
-  var status=document.getElementById("dl-status");
-  if(status) status.textContent="On iPhone, use the image below. Press and hold it to Share, Copy, or Save to Photos.";
-  focusRenderedImage();
-}
-async function doCopyRenderedImage(){
-  var status=document.getElementById("dl-status");
-  if(status) status.textContent="On iPhone, direct image copy from a button is unreliable. Press and hold the image below, then tap Copy.";
-  focusRenderedImage();
-}
-function doOpenRenderedImage(){
-  var status=document.getElementById("dl-status");
-  if(status) status.textContent="Open Image was removed because Safari was opening a blank page. Use the image below instead.";
-  focusRenderedImage();
-}
 
 </script>
 
