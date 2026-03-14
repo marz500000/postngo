@@ -440,12 +440,15 @@ body{
   <button id="dl-btn" class="dl-btn" onclick="doDownload()">Download Post (1080x1080)</button>
   <div id="dl-status" style="text-align:center;font-size:12px;color:#5a8a78;margin-top:8px;min-height:16px"></div>
   <div id="img-container" style="display:none;margin-top:12px">
-    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">On Mac, click Save Image or right-click the image. On iPhone, press and hold to save.</div>
+    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">Best on iPhone: tap Share to Apps for Instagram or Messages. Or press and hold the image to save to Photos.</div>
     <img id="out-img" style="width:100%;border-radius:8px">
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <a id="save-image-link" href="#" download="healing-path-post.png" style="flex:1;text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Save Image</a>
-      <a id="open-image-link" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Open Image</a>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <button id="share-image-btn" type="button" onclick="doShareRenderedImage()" style="padding:10px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:12px;font-weight:bold">Share to Apps</button>
+      <button id="copy-image-btn" type="button" onclick="doCopyRenderedImage()" style="padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px">Copy Image</button>
+      <a id="save-image-link" href="#" download="postngo-post.png" style="text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Download File</a>
+      <button id="open-image-btn" type="button" onclick="doOpenRenderedImage()" style="padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px">Open Image</button>
     </div>
+    <div style="font-size:11px;color:#5f7a70;margin-top:8px;text-align:center">Instagram usually works best from Share to Apps. Browser downloads go to Files, not Photos.</div>
   </div>
 </div>
 <div id="custom-modal" class="modal-overlay">
@@ -689,6 +692,8 @@ var aiLen="med";
 var batchTheme="cream";
 var batchSel={};
 var lastRenderedDataURL="";
+var lastRenderedBlob=null;
+var lastRenderedObjectURL="";
 var savedCaps=[];
 try{savedCaps=JSON.parse(localStorage.getItem("thp_saved")||"[]");}catch(e){}
 var trackerItems=[];
@@ -1647,26 +1652,37 @@ function drawCapText(ctx,cap,S,startY,tc,sc,fs,fsb){
   if(getHandle()){ctx.font="21px Georgia,serif";ctx.fillStyle=sc;ctx.globalAlpha=.35;ctx.fillText(getHandle(),S/2,S-30);ctx.globalAlpha=1;}
 }
 
-function setRenderedOutput(dataURL){
-  lastRenderedDataURL=dataURL||"";
+
+function revokeRenderedObjectURL(){
+  try{ if(lastRenderedObjectURL) URL.revokeObjectURL(lastRenderedObjectURL); }catch(e){}
+  lastRenderedObjectURL="";
+}
+function setRenderedOutput(src, blob){
+  lastRenderedBlob = blob || null;
+  lastRenderedDataURL = src || "";
+  revokeRenderedObjectURL();
+  if(blob){
+    try{ lastRenderedObjectURL = URL.createObjectURL(blob); }catch(e){ lastRenderedObjectURL = ""; }
+  }
+  var displaySrc = lastRenderedObjectURL || lastRenderedDataURL || "";
   var out=document.getElementById("out-img");
   var box=document.getElementById("img-container");
   var saveLink=document.getElementById("save-image-link");
-  var openLink=document.getElementById("open-image-link");
-  if(out)out.src=lastRenderedDataURL||"";
-  if(box)box.style.display=lastRenderedDataURL?"block":"none";
+  if(out)out.src=displaySrc;
+  if(box)box.style.display=displaySrc?"block":"none";
   if(saveLink){
-    saveLink.href=lastRenderedDataURL||"#";
-    saveLink.download="healing-path-post-"+Date.now()+".png";
+    saveLink.href=displaySrc||"#";
+    saveLink.download="postngo-post-"+Date.now()+".png";
   }
-  if(openLink)openLink.href=lastRenderedDataURL||"#";
 }
-function tryAutoDownload(dataURL){
-  if(!dataURL)return false;
+function tryAutoDownload(src){
+  if(!src) return false;
+  var isiPhone=/iPhone|iPad|iPod/i.test(navigator.userAgent||"");
+  if(isiPhone) return false;
   try{
     var a=document.createElement("a");
-    a.href=dataURL;
-    a.download="healing-path-post-"+Date.now()+".png";
+    a.href=src;
+    a.download="postngo-post-"+Date.now()+".png";
     a.rel="noopener";
     a.style.display="none";
     document.body.appendChild(a);
@@ -1675,6 +1691,54 @@ function tryAutoDownload(dataURL){
     return true;
   }catch(e){
     return false;
+  }
+}
+async function doShareRenderedImage(){
+  var status=document.getElementById("dl-status");
+  try{
+    if(lastRenderedBlob && navigator.canShare && navigator.share){
+      var file = new File([lastRenderedBlob], "postngo-post.png", {type:"image/png"});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:"PostNGo Image"});
+        if(status) status.textContent="Shared.";
+        return;
+      }
+    }
+    if(lastRenderedObjectURL){
+      window.open(lastRenderedObjectURL, "_blank");
+      if(status) status.textContent="Image opened. On iPhone, press and hold the image to save or share.";
+      return;
+    }
+    if(status) status.textContent="Build the image first.";
+  }catch(e){
+    if(status) status.textContent="Sharing was canceled or blocked in this browser.";
+  }
+}
+async function doCopyRenderedImage(){
+  var status=document.getElementById("dl-status");
+  try{
+    if(navigator.clipboard && window.ClipboardItem && lastRenderedBlob){
+      await navigator.clipboard.write([new ClipboardItem({"image/png": lastRenderedBlob})]);
+      if(status) status.textContent="Image copied. You can paste it into Messages or Notes if your browser supports image paste.";
+      return;
+    }
+    if(status) status.textContent="This browser does not support direct image copy. Use Share to Apps or press and hold the image.";
+  }catch(e){
+    if(status) status.textContent="Copy image is not supported here. Use Share to Apps or press and hold the image.";
+  }
+}
+function doOpenRenderedImage(){
+  var status=document.getElementById("dl-status");
+  var src = lastRenderedObjectURL || lastRenderedDataURL || "";
+  if(!src){
+    if(status) status.textContent="Build the image first.";
+    return;
+  }
+  try{
+    window.open(src, "_blank");
+    if(status) status.textContent="Image opened. On iPhone, press and hold the image to save or share.";
+  }catch(e){
+    if(status) status.textContent="Could not open the image in this browser.";
   }
 }
 
@@ -1711,17 +1775,20 @@ function doDownload(){
     status.textContent=msg||"Could not create the image in this browser.";
     resetBtn();
   }
-  function finalizeSuccess(dataURL){
+  function finalizeSuccess(src, blob){
     if(finished)return;
     finished=true;
     try{
-      setRenderedOutput(dataURL);
-      var started=tryAutoDownload(dataURL);
-      status.textContent=started
-        ? "Image is ready below. If it did not save automatically, click Save Image or Open Image."
-        : "Image is ready below. Click Save Image, Open Image, or right-click the image.";
+      setRenderedOutput(src, blob);
+      var started=tryAutoDownload(lastRenderedObjectURL || src);
+      var isiPhone=/iPhone|iPad|iPod/i.test(navigator.userAgent||"");
+      status.textContent=isiPhone
+        ? "Image is ready below. Tap Share to Apps for Instagram or Messages, or press and hold the image to save."
+        : (started
+          ? "Image is ready below. If it did not save automatically, use Share to Apps, Download File, or Open Image."
+          : "Image is ready below. Use Share to Apps, Download File, or Open Image.");
     }catch(e){
-      status.textContent="Image rendered, but this browser blocked the auto-save action. Use the image below.";
+      status.textContent="Image rendered, but this browser blocked the action. Use the image below.";
     }
     resetBtn();
   }
