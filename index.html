@@ -440,15 +440,13 @@ body{
   <button id="dl-btn" class="dl-btn" onclick="doDownload()">Download Post (1080x1080)</button>
   <div id="dl-status" style="text-align:center;font-size:12px;color:#5a8a78;margin-top:8px;min-height:16px"></div>
   <div id="img-container" style="display:none;margin-top:12px">
-    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">Best on iPhone: tap Share to Apps for Instagram or Messages. Or press and hold the image to save to Photos.</div>
+    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">Best on iPhone: press and hold the image below to Copy, Share, or Save to Photos. Downloads go to Files.</div>
     <img id="out-img" style="width:100%;border-radius:8px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <button id="share-image-btn" type="button" onclick="doShareRenderedImage()" style="padding:10px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:12px;font-weight:bold">Share to Apps</button>
-      <button id="copy-image-btn" type="button" onclick="doCopyRenderedImage()" style="padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px">Copy Image</button>
+      <button id="show-image-btn" type="button" onclick="focusRenderedImage()" style="padding:10px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:12px;font-weight:bold">Show Image Below</button>
       <a id="save-image-link" href="#" download="postngo-post.png" style="text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Download File</a>
-      <button id="open-image-btn" type="button" onclick="doOpenRenderedImage()" style="padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px">Open Image</button>
     </div>
-    <div style="font-size:11px;color:#5f7a70;margin-top:8px;text-align:center">Instagram usually works best from Share to Apps. Browser downloads go to Files, not Photos.</div>
+    <div style="font-size:11px;color:#5f7a70;margin-top:8px;text-align:center">On iPhone, long-press the image for Copy, Share, or Save Image. This works better than browser share buttons.</div>
   </div>
 </div>
 <div id="custom-modal" class="modal-overlay">
@@ -1783,7 +1781,7 @@ function doDownload(){
       var started=tryAutoDownload(lastRenderedObjectURL || src);
       var isiPhone=/iPhone|iPad|iPod/i.test(navigator.userAgent||"");
       status.textContent=isiPhone
-        ? "Image is ready below. Tap Share to Apps for Instagram or Messages, or press and hold the image to save."
+        ? "Image is ready below. Press and hold the image to Copy, Share, or Save to Photos."
         : (started
           ? "Image is ready below. If it did not save automatically, use Share to Apps, Download File, or Open Image."
           : "Image is ready below. Use Share to Apps, Download File, or Open Image.");
@@ -2416,6 +2414,37 @@ function generateHooks(){
     out.appendChild(makeSimpleCard("Hook "+(i+1), h));
   });
   if(typeof showToast==="function") showToast("Hooks generated");
+}
+
+
+function focusRenderedImage(){
+  var img=document.getElementById("out-img");
+  var status=document.getElementById("dl-status");
+  if(!img || !img.src){
+    if(status) status.textContent="Build the image first.";
+    return;
+  }
+  try{
+    img.scrollIntoView({behavior:"smooth", block:"center"});
+    img.style.boxShadow="0 0 0 2px rgba(106,186,168,.65), 0 10px 30px rgba(0,0,0,.35)";
+    setTimeout(function(){ try{ img.style.boxShadow=""; }catch(e){} }, 1800);
+  }catch(e){}
+  if(status) status.textContent="Image ready below. On iPhone, press and hold the image to Copy, Share, or Save to Photos.";
+}
+async function doShareRenderedImage(){
+  var status=document.getElementById("dl-status");
+  if(status) status.textContent="On iPhone, use the image below. Press and hold it to Share, Copy, or Save to Photos.";
+  focusRenderedImage();
+}
+async function doCopyRenderedImage(){
+  var status=document.getElementById("dl-status");
+  if(status) status.textContent="On iPhone, direct image copy from a button is unreliable. Press and hold the image below, then tap Copy.";
+  focusRenderedImage();
+}
+function doOpenRenderedImage(){
+  var status=document.getElementById("dl-status");
+  if(status) status.textContent="Open Image was removed because Safari was opening a blank page. Use the image below instead.";
+  focusRenderedImage();
 }
 
 </script>
