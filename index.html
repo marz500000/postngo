@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>PostNGo - Create • Design • Post</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;font-family:Georgia,serif;color:#e8e0d0;min-height:100vh;padding:0 0 100px}
+button{cursor:pointer;font-family:Georgia,serif}
+.max{max-width:480px;margin:0 auto;padding:0 16px}
+.lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4a6a60;margin-bottom:6px}
+.tab-btn{flex:1;padding:8px 2px;border:none;font-size:10px;font-family:Georgia,serif}
+.tab-btn.on{background:#2d5c52;color:#f0ece0}
+.tab-btn.off{background:rgba(255,255,255,.05);color:#5a6a60}
+.pillar-btn{width:100%;padding:13px 14px;border-radius:12px;font-size:14px;text-align:left;display:flex;align-items:center;justify-content:space-between;border:1.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);color:#7a8a80;margin-bottom:8px}
+.pillar-btn.sel{background:rgba(45,92,82,.2);border-color:#2d5c52;color:#a8d8c8}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.chk.on{background:#2d5c52;border-color:#2d5c52}
+.gen-btn{width:100%;padding:16px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:12px;color:#f0ece0;font-size:15px;font-weight:bold;box-shadow:0 4px 20px rgba(45,92,82,.35);margin-bottom:16px}
+.cap-card{margin-bottom:12px;background:rgba(255,255,255,.03);border:1px solid rgba(45,92,82,.25);border-radius:14px;overflow:hidden}
+.cap-inner{padding:12px 12px 8px}
+.cap-pillar{font-size:10px;color:#3a5a50;margin-bottom:5px;letter-spacing:.1em}
+.cap-text{font-size:13px;line-height:1.8;color:#c8d8c8;margin-bottom:8px}
+.cap-actions{display:flex;border-top:1px solid rgba(45,92,82,.2)}
+.cap-btn{flex:1;padding:9px 4px;background:none;border:none;color:#6abaa8;font-size:11px;font-family:Georgia,serif;border-right:1px solid rgba(45,92,82,.15)}
+.cap-btn:last-child{border-right:none}
+.tmb{padding:8px 6px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;color:#5a6a60;font-size:11px;flex:1;font-family:Georgia,serif}
+.tmb.on{background:rgba(45,92,82,.25);border-color:#2d5c52;color:#a8d8c8}
+.fnt-btn{flex:1;padding:7px 3px;border-radius:8px;font-size:11px;border:1.5px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#5a6a60;font-family:Georgia,serif}
+.fnt-btn.on{background:rgba(45,92,82,.25);border-color:#2d5c52;color:#a8d8c8}
+.prof-btn{flex:1;padding:12px 4px 9px;border-radius:12px;border:1.5px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);color:#5a6a60;font-size:11px;font-family:Georgia,serif;text-align:center}
+.prof-btn.on{background:rgba(45,92,82,.25);border-color:#2d5c52;color:#a8d8c8}
+.dl-btn{width:100%;padding:15px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:14px;color:#f0ece0;font-size:15px;font-weight:bold;box-shadow:0 4px 24px rgba(45,92,82,.4)}
+textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;padding:10px;color:#d0c8b8;font-size:13px;font-family:Georgia,serif;resize:vertical;line-height:1.7;outline:none}
+textarea::placeholder{color:#3a5a50}
+input[type=text]{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;padding:10px;color:#d0c8b8;font-size:13px;font-family:Georgia,serif;outline:none;margin-bottom:12px}
+select{width:100%;background:#1a2a24;border:1px solid rgba(45,92,82,.3);border-radius:10px;padding:10px;color:#c8d8c8;font-size:13px;font-family:Georgia,serif;outline:none;margin-bottom:10px}
+.upz{border:2px dashed rgba(45,92,82,.4);border-radius:12px;padding:16px;text-align:center;color:#4a6a60;font-size:13px;cursor:pointer;margin-bottom:10px}
+input[type=range]{width:100%;accent-color:#2d5c52;margin:4px 0 12px}
+.cal-day{border:1px solid rgba(45,92,82,.25);border-radius:10px;padding:10px;margin-bottom:8px}
+.cal-label{font-size:10px;color:#4a6a60;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+#preview-screen{display:none}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:flex-end;padding:12px}
+.modal-box{background:#111827;border:1px solid rgba(45,92,82,.4);border-radius:18px;padding:20px;width:100%;max-width:480px;margin:0 auto}
+
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #3d7a6e;outline-offset:2px}
+button:hover{filter:brightness(1.03)}
+button:active{transform:translateY(1px)}
+
+/* v8 polish upgrades */
+body{padding:0 0 150px !important;}
+.pillar-btn,.prof-btn,.cap-card,.modal-box,#preview-screen .max>div[style*="box-shadow"],.cal-day{
+  box-shadow:0 10px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.cap-card,.pillar-btn,.prof-btn,.modal-box,.cal-day{
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.tmb,.fnt-btn,.prof-btn,.cap-btn,.gen-btn,.dl-btn,.pillar-btn,.tab-btn{
+  transition:transform .14s ease, filter .14s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.tmb:active,.fnt-btn:active,.prof-btn:active,.cap-btn:active,.gen-btn:active,.dl-btn:active,.pillar-btn:active,.tab-btn:active{
+  transform:scale(.985);
+}
+#png-sticky-bar{
+  position:fixed;left:50%;bottom:max(14px, env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(460px, calc(100vw - 24px));
+  z-index:9997;
+  display:flex;gap:10px;
+  padding:10px;
+  border-radius:18px;
+  border:1px solid rgba(45,92,82,.34);
+  background:rgba(10,16,16,.86);
+  box-shadow:0 16px 40px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.02) inset;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+#png-sticky-bar button{
+  flex:1;
+  min-height:46px;
+  border-radius:14px;
+  border:1px solid rgba(45,92,82,.28);
+  background:rgba(255,255,255,.04);
+  color:#dfe9e2;
+  font-size:13px;
+  font-weight:700;
+}
+#png-sticky-bar button.primary{
+  background:linear-gradient(135deg,#2d5c52,#3d7a6e);
+  border:none;
+  color:#f0ece0;
+  box-shadow:0 10px 24px rgba(45,92,82,.25);
+}
+#png-sticky-bar button.ghost{
+  color:#8cc8ba;
+}
+#png-sticky-bar button[disabled]{
+  opacity:.42; filter:saturate(.7); cursor:not-allowed;
+}
+#png-toast{
+  position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);
+  z-index:9998;
+  max-width:min(420px, calc(100vw - 32px));
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(13,20,20,.92);
+  border:1px solid rgba(45,92,82,.34);
+  color:#e9efe9;
+  font-size:12px;
+  box-shadow:0 12px 32px rgba(0,0,0,.38);
+  opacity:0; pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+#png-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:520px){
+  #png-sticky-bar{width:calc(100vw - 16px);gap:8px;padding:8px;border-radius:16px;}
+  #png-sticky-bar button{min-height:44px;font-size:12px;}
+}
+
+</style>
+
+<style>
+body{
+  background-color:#0b0f10;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cg fill='%23cfd8dc' fill-opacity='0.10'%3E%3Ctext x='60' y='250' transform='rotate(-25 250 250)' font-size='42' font-family='Georgia, serif'%3E%F0%9F%93%A4%20PostNGo%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:520px 520px;
+}
+</style>
+
+</head>
+<body>
+<div id="profile-bar" style="position:sticky;top:0;z-index:100;background:rgba(13,13,13,.96);backdrop-filter:blur(8px);border-bottom:1px solid rgba(45,92,82,.2);padding:7px 16px">
+  <div style="max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px">
+    <img id="bar-logo" src="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;display:none">
+    <span id="bar-profile" style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#3a5a50">Business</span>
+    <span style="color:#2d5c52;font-size:10px">|</span>
+    <span id="bar-name" style="font-size:11px;color:#6abaa8;font-weight:bold"></span>
+    <span id="bar-handle" style="font-size:11px;color:#3a5a50"></span>
+  </div>
+</div>
+<div id="main-screen">
+<div class="max">
+
+  <div style="text-align:center;padding:14px 0 10px">
+    <img id="hdr-logo" src="" style="width:56px;height:56px;object-fit:contain;display:none;margin-bottom:4px">
+    <div id="hdr-name" style="font-size:14px;color:#a8d8c8;font-weight:bold"></div>
+    <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#3a5a50;margin-top:2px">Post Maker</div>
+  </div>
+
+  <div style="margin-bottom:14px">
+    <div class="lbl" style="text-align:center;margin-bottom:6px">Profile</div>
+    <div style="display:flex;gap:8px">      <button class="prof-btn on" id="pr-business" onclick="switchProfile('business')"><div style="font-size:20px;margin-bottom:3px">&#x1F4BC;</div>Business</button>      <button class="prof-btn"    id="pr-personal" onclick="switchProfile('personal')"><div style="font-size:20px;margin-bottom:3px">&#x1F464;</div>Personal</button>      <button class="prof-btn"    id="pr-other"    onclick="switchProfile('other')"><div style="font-size:20px;margin-bottom:3px">&#x270F;&#xFE0F;</div>Other</button>    </div>
+  </div>
+
+  <div style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(45,92,82,.3)">
+    <button class="tab-btn on" id="tab-gen" onclick="go('gen')">Generate</button>
+    <button class="tab-btn off" id="tab-batch" onclick="go('batch')">Batch</button>
+    <button class="tab-btn off" id="tab-saved" onclick="go('saved')">Saved</button>
+    <button class="tab-btn off" id="tab-tracker" onclick="go('tracker')">Track</button>
+    <button class="tab-btn off" id="tab-settings" onclick="go('settings')">Settings</button>
+  </div>
+  <div style="margin:-4px 0 14px;padding:10px 12px;border:1px solid rgba(45,92,82,.18);border-radius:12px;background:rgba(255,255,255,.025);font-size:11px;color:#6f8c82;line-height:1.5">
+    <span style="color:#a8d8c8;font-weight:bold">How to use PostNGo:</span> use <span style="color:#d7ece3">⚡ Quick Post</span> for the fastest caption, <span style="color:#d7ece3">💡 Idea Builder</span> when you want longer topic-based ideas, and <span style="color:#d7ece3">✍ Write Your Own</span> when you already know what you want to say.
+  </div>
+  <div id="pg-gen">
+    <button onclick="openCustomModal()" style="width:100%;padding:12px;background:rgba(45,92,82,.12);border:1px dashed rgba(45,92,82,.5);border-radius:12px;color:#6abaa8;font-size:13px;margin-bottom:14px;text-align:center">&#x270D; ✍ Write Your Own Caption</button>
+    <div id="logo-missing-banner" style="display:none;background:rgba(200,168,74,.08);border:1px solid rgba(200,168,74,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('quick-logo-inp').click()">
+      <div style="font-size:22px">&#x1F5BC;&#xFE0F;</div>
+      <div>
+        <div style="font-size:12px;color:#c8a84a;font-weight:bold">No logo uploaded</div>
+        <div style="font-size:11px;color:#7a6a40;margin-top:2px">Tap to upload from photos</div>
+      </div>
+    </div>
+    <input type="file" id="quick-logo-inp" accept="image/*" style="display:none">
+    
+    <div style="margin-bottom:14px;padding:12px;border:1px solid rgba(45,92,82,.28);border-radius:14px;background:rgba(255,255,255,.03);backdrop-filter:blur(8px)">
+      <div style="font-size:14px;font-weight:bold;color:#a8d8c8;margin-bottom:4px">Your Pillars</div>
+      <div style="font-size:11px;color:#5f7a70;margin-bottom:10px">Create frequently used topic pillars for your niche. Example: Real Estate, Home Tips, Parenting, Fitness, Client Wins.</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="new-pillar-name" placeholder="Create a new pillar..." style="margin-bottom:0;flex:1">
+        <button onclick="createPillar()" style="padding:10px 14px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:12px;font-weight:bold;white-space:nowrap">+ Add</button>
+      </div>
+      <div id="pillar-msg" style="font-size:11px;color:#5a8a78;min-height:16px;margin-bottom:8px"></div>
+      <div id="starter-pillar-wrap" style="margin-bottom:8px">
+        <div class="lbl" style="margin-bottom:6px">Quick Starters</div>
+        <div id="starter-pillars" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div class="lbl" style="margin-bottom:6px">Manage Pillars</div>
+      <div id="pillars-manage-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+
+    <div class="lbl">Select Pillars</div>
+
+    <div id="hint" style="font-size:11px;color:#3a5a50;margin-bottom:10px">Tap to select</div>
+    <div id="pillar-list"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button onclick="selAll()" style="flex:1;padding:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;color:#5a6a60;font-size:12px">Select All</button>
+      <button onclick="clrAll()" style="flex:1;padding:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;color:#5a6a60;font-size:12px">Clear All</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(45,92,82,.08);border:1px solid rgba(45,92,82,.25);border-radius:12px;margin-bottom:12px;cursor:pointer" onclick="toggleBlend()" id="blend-row">
+      <div id="blend-chk" style="width:22px;height:22px;border-radius:6px;border:2px solid rgba(45,92,82,.5);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px"></div>
+      <div><div style="font-size:12px;color:#a8d8c8;font-weight:bold">Blend Mode</div><div id="blend-hint" style="font-size:11px;color:#3a5a50;margin-top:1px">Blend exactly 2 pillars into one caption</div></div>
+    </div>
+    <button class="gen-btn" onclick="generate()">⚡ Quick Posts</button>
+    <div id="cap-list"><div style="text-align:center;color:#3a5a50;font-size:13px;padding:16px 0">Select pillars above and tap Generate.</div></div>
+
+    <div style="border-top:1px solid rgba(45,92,82,.2);margin-top:8px;padding-top:16px">
+      <div style="font-size:15px;font-weight:bold;color:#a8d8c8;letter-spacing:.08em;margin-bottom:10px">💡 Idea Builder</div>
+      <textarea id="ai-topic" rows="2" placeholder="Optional: describe your topic... e.g. first-time homebuyers, game day mindset, gym motivation, parenting wins" style="margin-bottom:10px;font-size:12px"></textarea>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="flex:1"><div class="lbl" style="margin-bottom:4px">Choose Pillar</div><select id="ai-p1"></select></div>
+        <div style="flex:1"><div class="lbl" style="margin-bottom:4px">Blend With (optional)</div><select id="ai-p2"></select></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="tmb"    id="al-short" onclick="setAiLen('short')">Short</button>
+        <button class="tmb on" id="al-med"   onclick="setAiLen('med')">Medium</button>
+        <button class="tmb"    id="al-long"  onclick="setAiLen('long')">Long</button>
+        <button class="tmb"    id="al-trio"  onclick="setAiLen('trio')">All 3</button>
+      </div>
+      <button class="gen-btn" onclick="aiWrite()" style="margin-bottom:4px">⚡ Quick Post</button>
+      
+      <div style="margin:10px 0 8px;padding:10px;border:1px solid rgba(45,92,82,.22);border-radius:12px;background:rgba(255,255,255,.02)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:bold;color:#a8d8c8">🔥 Hook Generator</div>
+          <button class="tmb" onclick="generateHooks()" style="flex:0 0 auto;padding:8px 10px">Generate Hooks</button>
+        </div>
+        <div id="hook-out" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div id="ai-out"></div>
+
+    </div>
+  </div>
+  <div id="pg-batch" style="display:none">
+    <div style="font-size:15px;font-weight:bold;color:#a8d8c8;margin-bottom:4px">Weekly Planner</div>
+    <div style="font-size:11px;color:#4a6a60;margin-bottom:14px">Assign a pillar to each day, then generate all posts or preview them one by one.</div>
+
+    <button onclick="autoFillBatch()" style="width:100%;padding:12px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:13px;margin-bottom:10px">Auto-fill Week</button>
+    <div id="batch-days"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:12px">
+      <button onclick="previewFromPlanner()" style="flex:1;padding:12px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:13px">Preview Each Post</button>
+      <button onclick="runBatch()" style="flex:1;padding:12px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:10px;color:#f0ece0;font-size:13px;font-weight:bold">Download All</button>
+    </div>
+
+    <div class="lbl">Background theme for Download All</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="tmb on" id="bt-cream"    onclick="setBatchTheme('cream')">Cream</button>
+      <button class="tmb"    id="bt-sage"     onclick="setBatchTheme('sage')">Sage</button>
+      <button class="tmb"    id="bt-dusk"     onclick="setBatchTheme('dusk')">Dusk</button>
+      <button class="tmb"    id="bt-blush"    onclick="setBatchTheme('blush')">Blush</button>
+      <button class="tmb"    id="bt-sky"      onclick="setBatchTheme('sky')">Sky</button>
+      <button class="tmb"    id="bt-lavender" onclick="setBatchTheme('lavender')">Lavender</button>
+      <button class="tmb"    id="bt-forest"   onclick="setBatchTheme('forest')">Forest</button>
+      <button class="tmb"    id="bt-rose"     onclick="setBatchTheme('rose')">Rose</button>
+    </div>
+    <div id="batch-status" style="text-align:center;font-size:12px;color:#5a8a78;min-height:16px;margin-bottom:8px"></div>
+    <div id="batch-out"></div>
+  </div>
+  <div id="pg-saved" style="display:none">
+    <div class="lbl">Saved Captions</div>
+    <div id="saved-list"></div>
+  </div>
+  <div id="pg-tracker" style="display:none">
+    <div class="lbl">Post Tracker</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button onclick="addTrack()" style="flex:1;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:13px">+ Add Post</button>
+      <button onclick="clearDone()" style="flex:1;padding:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;color:#5a6a60;font-size:13px">Clear Done</button>
+    </div>
+    <div id="track-stats" style="display:flex;gap:8px;margin-bottom:12px"></div>
+    <div id="track-list"></div>
+  </div>
+  <div id="pg-settings" style="display:none">
+    <div class="lbl">Profile</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="tmb on" id="ns-business" onclick="switchProfile('business')" style="flex:1">Business</button>
+      <button class="tmb"    id="ns-personal" onclick="switchProfile('personal')" style="flex:1">Personal</button>
+      <button class="tmb"    id="ns-other"    onclick="switchProfile('other')"    style="flex:1">Other</button>
+    </div>
+    
+    <div style="margin-bottom:14px;padding:12px;border:1px solid rgba(45,92,82,.28);border-radius:14px;background:rgba(255,255,255,.03);backdrop-filter:blur(8px)">
+      <div style="font-size:14px;font-weight:bold;color:#a8d8c8;margin-bottom:4px">Pillar Builder</div>
+      <div style="font-size:11px;color:#5f7a70;margin-bottom:10px">Start with the built-in starter pack for this profile, then add your own custom pillars for your niche. Example: Real Estate, Sports, Gaming, Study Tips, Beauty, or Client Wins.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="tmb" onclick="go('gen')" style="flex:1;min-width:140px">+ Create Custom Pillar</button>
+        <button class="tmb" onclick="restoreStarterPack()" style="flex:1;min-width:140px">Restore Starter Pack</button>
+      </div>
+      <div id="settings-pillar-note" style="font-size:11px;color:#5a8a78;min-height:14px;margin-top:8px"></div>
+    </div>
+
+    <div class="lbl">Logo</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <img id="logo-prev" src="" style="width:60px;height:60px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,.05);padding:4px">
+      <div style="flex:1">
+        <div class="upz" onclick="document.getElementById('logo-inp').click()" id="logo-upz">Tap to upload logo</div>
+        <input type="file" id="logo-inp" accept="image/*" style="display:none">
+        <button onclick="pasteLogo()" style="width:100%;padding:9px;background:rgba(45,92,82,.12);border:1px solid rgba(45,92,82,.35);border-radius:8px;color:#6abaa8;font-size:12px;margin-top:6px">Paste Image (Copy &amp; Paste)</button>
+        <div id="paste-status" style="font-size:11px;color:#5a8a78;text-align:center;min-height:14px;margin-top:4px"></div>
+        <button onclick="resetLogo()" style="width:100%;padding:7px;background:none;border:1px solid rgba(255,255,255,.07);border-radius:8px;color:#5a6a60;font-size:11px;margin-top:4px">Reset logo</button>
+      </div>
+    </div>
+    <div class="lbl">Business Name</div>
+    <input type="text" id="s-bizname" placeholder="Your Brand Name">
+    <div class="lbl">Instagram Handle</div>
+    <input type="text" id="s-handle" placeholder="@yourhandle">
+    <div class="lbl">Hashtags (one per line)</div>
+    <textarea id="s-tags" rows="5" placeholder="#YourBrand"></textarea>
+    <button onclick="saveSettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:12px;color:#f0ece0;font-size:14px;font-weight:bold;margin-top:10px;margin-bottom:6px">Save Settings</button>
+    <div id="s-status" style="text-align:center;font-size:12px;color:#5a8a78;min-height:16px"></div>
+  </div>
+
+</div>
+</div>
+<div id="preview-screen" class="max">
+  <button onclick="backToMain()" style="background:none;border:1px solid rgba(45,92,82,.4);border-radius:8px;padding:6px 12px;color:#5a8a78;font-size:12px;margin:10px 0 12px">Back</button>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+    <div class="lbl" style="margin-bottom:0;white-space:nowrap">Platform</div>
+    <button class="tmb on" id="plt-ig"  onclick="setPlatform('ig')"  style="flex:1">&#x1F4F7; Instagram</button>
+    <button class="tmb"    id="plt-tt"  onclick="setPlatform('tt')"  style="flex:1">&#x1F3B5; TikTok</button>
+  </div>
+  <div id="platform-tip" style="font-size:11px;color:#4a7a6e;margin-bottom:12px;padding:8px 12px;background:rgba(45,92,82,.08);border-radius:8px;border-left:2px solid #2d5c52"></div>
+  <div style="border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.7);margin-bottom:16px">
+    <div style="background:#1a1a1a;padding:8px 12px;display:flex;align-items:center;gap:8px">
+      <img id="ig-logo" src="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;display:none">
+      <span id="ig-handle-lbl" style="font-size:12px;color:#fff;font-family:sans-serif;font-weight:600">yourhandle</span>
+    </div>
+    <div id="post-preview" style="padding:28px 24px 36px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;min-height:380px;background:#f5f0e8"></div>
+  </div>
+
+  <div class="lbl">Background</div>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <button class="tmb on" id="bg-solid" onclick="setBgMode('solid')">Solid</button>
+    <button class="tmb"    id="bg-photo" onclick="setBgMode('photo')">Photo</button>
+  </div>
+  <div id="solid-opts" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="tmb on" id="th-cream"    onclick="setTheme('cream')">Cream</button>
+    <button class="tmb"    id="th-sage"     onclick="setTheme('sage')">Sage</button>
+    <button class="tmb"    id="th-dusk"     onclick="setTheme('dusk')">Dusk</button>
+    <button class="tmb"    id="th-blush"    onclick="setTheme('blush')">Blush</button>
+    <button class="tmb"    id="th-sky"      onclick="setTheme('sky')">Sky</button>
+    <button class="tmb"    id="th-lavender" onclick="setTheme('lavender')">Lavender</button>
+    <button class="tmb"    id="th-sand"     onclick="setTheme('sand')">Sand</button>
+    <button class="tmb"    id="th-forest"   onclick="setTheme('forest')">Forest</button>
+    <button class="tmb"    id="th-rose"     onclick="setTheme('rose')">Rose</button>
+  </div>
+  <div id="photo-opts" style="display:none;margin-bottom:12px">
+    <div class="upz" onclick="document.getElementById('photo-inp').click()"><div id="photo-lbl">Tap to upload a photo</div></div>
+    <input type="file" id="photo-inp" accept="image/*" style="display:none">
+    <button onclick="pastePhoto()" style="width:100%;padding:8px;background:rgba(45,92,82,.12);border:1px solid rgba(45,92,82,.35);border-radius:8px;color:#6abaa8;font-size:12px;margin-bottom:8px">Paste Photo</button>
+    <button id="remove-photo-btn" onclick="removePhoto()" style="display:none;width:100%;padding:8px;background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);border-radius:8px;color:#c87a7a;font-size:12px;margin-bottom:8px">Remove photo</button>
+    <div class="lbl">Photo Position: <span id="posxy-val">50 / 50</span></div>
+    <div id="photo-axis-note" style="font-size:11px;color:#6a8f83;margin:-2px 0 8px">Zoom in a little more to unlock both directions when needed.</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px"><span style="font-size:11px;color:#5a6a60;width:16px">X</span><input type="range" id="bgx-sl" min="0" max="100" value="50" oninput="onBgPos()"></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#5a8a78;margin:-2px 0 8px"><span id="x-range-note">Horizontal move: checking…</span><button type="button" id="x-unlock-btn" onclick="unlockAxis('x')" style="display:none;background:none;border:none;color:#8bc6b4;font-size:10px;text-decoration:underline;padding:0">Zoom to unlock</button></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px"><span style="font-size:11px;color:#5a6a60;width:16px">Y</span><input type="range" id="bgy-sl" min="0" max="100" value="50" oninput="onBgPos()"></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#5a8a78;margin:-2px 0 8px"><span id="y-range-note">Vertical move: checking…</span><button type="button" id="y-unlock-btn" onclick="unlockAxis('y')" style="display:none;background:none;border:none;color:#8bc6b4;font-size:10px;text-decoration:underline;padding:0">Zoom to unlock</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+      <button id="move-up-btn" onclick="nudgePhoto(0,-4)" style="padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:8px;color:#6abaa8;font-size:12px">Move Up</button>
+      <button id="move-left-btn" onclick="nudgePhoto(-4,0)" style="padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:8px;color:#6abaa8;font-size:12px">Move Left</button>
+      <button id="move-right-btn" onclick="nudgePhoto(4,0)" style="padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:8px;color:#6abaa8;font-size:12px">Move Right</button>
+      <button id="move-down-btn" onclick="nudgePhoto(0,4)" style="padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:8px;color:#6abaa8;font-size:12px">Move Down</button>
+      <button id="move-up-more-btn" onclick="nudgePhoto(0,-10)" style="padding:8px;background:rgba(45,92,82,.1);border:1px solid rgba(45,92,82,.25);border-radius:8px;color:#8bc6b4;font-size:12px">Up More</button>
+      <button id="move-down-more-btn" onclick="nudgePhoto(0,10)" style="padding:8px;background:rgba(45,92,82,.1);border:1px solid rgba(45,92,82,.25);border-radius:8px;color:#8bc6b4;font-size:12px">Down More</button>
+    </div>
+    <div class="lbl">Zoom: <span id="bgz-val">100</span>%</div>
+    <input type="range" id="bgz-sl" min="100" max="220" value="100" oninput="onBgZoom()">
+    <div class="lbl">Dim: <span id="dim-val">50</span>%</div>
+    <input type="range" id="dim-sl" min="0" max="85" value="50" oninput="onDim()">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="resetPhotoView()" style="flex:1;padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:8px;color:#6abaa8;font-size:12px">Reset Photo Framing</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="tmb on" id="dim-dark"  onclick="setDimCol('dark')">Dark</button>
+      <button class="tmb"    id="dim-light" onclick="setDimCol('light')">Light</button>
+    </div>
+  </div>
+
+  <div class="lbl">Text Color</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <input type="color" id="txt-color" value="#1e4a40" oninput="setTxtColor(this.value)" style="width:40px;height:40px;border-radius:8px;border:1px solid rgba(45,92,82,.3);background:none;padding:2px">
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button onclick="setTxtColor('#1e4a40')" style="width:26px;height:26px;border-radius:5px;border:none;background:#1e4a40"></button>
+      <button onclick="setTxtColor('#ffffff')" style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:#fff"></button>
+      <button onclick="setTxtColor('#000000')" style="width:26px;height:26px;border-radius:5px;border:none;background:#000"></button>
+      <button onclick="setTxtColor('#c8a84a')" style="width:26px;height:26px;border-radius:5px;border:none;background:#c8a84a"></button>
+      <button onclick="setTxtColor('#6b2d4a')" style="width:26px;height:26px;border-radius:5px;border:none;background:#6b2d4a"></button>
+      <button onclick="setTxtColor('auto')" style="padding:0 7px;height:26px;border-radius:5px;border:1px solid rgba(45,92,62,.4);background:none;color:#6abaa8;font-size:10px">Auto</button>
+    </div>
+  </div>
+
+  <div class="lbl">Logo Size: <span id="lsz-val">120</span>px</div>
+  <input type="range" id="lsz-sl" min="60" max="200" value="120" oninput="onLogoSize()">
+
+  <div class="lbl">Font</div>
+  <div style="display:flex;gap:5px;margin-bottom:12px">
+    <button class="fnt-btn on" id="f-georgia"  onclick="setFont('Georgia,serif')">Georgia</button>
+    <button class="fnt-btn"    id="f-palatino" onclick="setFont('Palatino,serif')">Palatino</button>
+    <button class="fnt-btn"    id="f-modern"   onclick="setFont('Trebuchet MS,sans-serif')">Modern</button>
+    <button class="fnt-btn"    id="f-courier"  onclick="setFont('Courier New,monospace')">Courier</button>
+  </div>
+
+  <div class="lbl">Text Size: <span id="tsz-val">14</span>px</div>
+  <input type="range" id="tsz-sl" min="10" max="20" value="14" oninput="onTxtSize()">
+
+  <div class="lbl">Layout</div>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button class="tmb on" id="lay-center" onclick="setLayout('center')">Center</button>
+    <button class="tmb"    id="lay-left"   onclick="setLayout('left')">Left</button>
+    <button class="tmb"    id="lay-bottom" onclick="setLayout('bottom')">Bottom</button>
+  </div>
+
+  <div class="lbl">Call to Action</div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="tmb on" id="cta-none"    onclick="setCTA('')">None</button>
+    <button class="tmb"    id="cta-save"    onclick="setCTA('save')">Save this</button>
+    <button class="tmb"    id="cta-tag"     onclick="setCTA('tag')">Tag someone</button>
+    <button class="tmb"    id="cta-follow"  onclick="setCTA('follow')">Follow</button>
+    <button class="tmb"    id="cta-comment" onclick="setCTA('comment')">Comment</button>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div id="tog" style="width:38px;height:20px;border-radius:10px;background:#2d5c52;position:relative;cursor:pointer" onclick="toggleTags()">
+      <div id="knob" style="position:absolute;top:3px;left:19px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>
+    </div>
+    <span style="font-size:12px;color:#5a6a60">Show hashtags</span>
+  </div>
+
+  <div class="lbl">Edit Caption</div>
+  <textarea id="edit-txt" rows="5" style="margin-bottom:10px" oninput="onEditTxt()"></textarea>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button onclick="doRefresh()" style="flex:1;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px">Refresh</button>
+    <button onclick="doCopyBtn()" id="copy-btn" style="flex:1;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px">Copy</button>
+    <button onclick="doSave()" id="save-btn" style="flex:1;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px">Save</button>
+  </div>
+  <button id="dl-btn" class="dl-btn" onclick="doDownload()">Download Post (1080x1080)</button>
+  <div id="dl-status" style="text-align:center;font-size:12px;color:#5a8a78;margin-top:8px;min-height:16px"></div>
+  <div id="img-container" style="display:none;margin-top:12px">
+    <div style="font-size:11px;color:#5a8a78;margin-bottom:6px;text-align:center">On Mac, click Save Image or right-click the image. On iPhone, press and hold to save.</div>
+    <img id="out-img" style="width:100%;border-radius:8px">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <a id="save-image-link" href="#" download="healing-path-post.png" style="flex:1;text-align:center;padding:10px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Save Image</a>
+      <a id="open-image-link" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(45,92,82,.3);border-radius:10px;color:#6abaa8;font-size:12px;text-decoration:none">Open Image</a>
+    </div>
+  </div>
+</div>
+<div id="custom-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:bold;color:#a8d8c8">✍ Write Your Own Caption</div>
+      <button onclick="closeCustomModal()" style="background:none;border:none;color:#5a6a60;font-size:22px;line-height:1;padding:0">x</button>
+    </div>
+    <textarea id="custom-modal-txt" rows="5" placeholder="Type anything... e.g. Sale going on now! 20% off this week only. DM to order." style="margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="rewriteCustomCaption()" style="flex:1;padding:12px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.35);border-radius:10px;color:#6abaa8;font-size:13px;font-weight:bold">AI Proofread &amp; Rewrite</button>
+      <button onclick="clearCustomCaption()" style="padding:12px 14px;background:none;border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#7a8a80;font-size:12px">Clear</button>
+    </div>
+    <div id="custom-rewrite-status" style="text-align:center;font-size:11px;color:#5a8a78;min-height:16px;margin-bottom:8px"></div>
+    <div class="lbl" style="margin-bottom:6px">Quick starters</div>
+    <div id="modal-templates" style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px"></div>
+    <button onclick="openCustomModalPreview()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:12px;color:#f0ece0;font-size:14px;font-weight:bold">Preview &amp; Design</button>
+  </div>
+</div>
+
+<button onclick="openCustomModal()" style="position:fixed;bottom:24px;right:20px;z-index:998;background:linear-gradient(135deg,#2d5c52,#3d7a6e);border:none;border-radius:50px;padding:13px 20px;color:#f0ece0;font-size:13px;font-weight:bold;box-shadow:0 4px 20px rgba(45,92,82,.5)">+ ✍ ✍ Write Your Own Caption</button>
+
+<div id="png-toast" aria-live="polite"></div>
+<div id="png-sticky-bar" role="toolbar" aria-label="Quick actions">
+  <button id="png-act-generate" class="primary" type="button" onclick="pngQuickGenerate()">Generate</button>
+  <button id="png-act-preview" class="ghost" type="button" onclick="pngQuickPreview()">Preview</button>
+  <button id="png-act-save" class="ghost" type="button" onclick="pngQuickSave()">Save</button>
+</div>
+
+<script>
+
+
+
+var LEGACY_PILLARS=[
+  {id:"peace",emoji:"🕊️",label:"Finding Peace"},
+  {id:"mental",emoji:"🧠",label:"Mental Health"},
+  {id:"physical",emoji:"💚",label:"Physical Health"},
+  {id:"children",emoji:"🛡️",label:"Protecting Children"},
+  {id:"fitness",emoji:"💪",label:"Working Out"},
+  {id:"inspiration",emoji:"✨",label:"Inspiration"},
+  {id:"comedy",emoji:"😂",label:"Healthy Comedy"},
+  {id:"relationships",emoji:"💑",label:"Relationships & Boundaries"},
+  {id:"selflove",emoji:"👑",label:"Self Love & Confidence"},
+  {id:"coparenting",emoji:"🤝",label:"Co-Parenting"},
+  {id:"parallel",emoji:"↔️",label:"Parallel Parenting"}
+];
+var CONNECTION_PILLARS=[
+  {id:"morning", emoji:"☀️", label:"Morning Wishes"},
+  {id:"proud", emoji:"🎉", label:"Proud of You"},
+  {id:"checkin", emoji:"💛", label:"Check In"},
+  {id:"laugh", emoji:"😆", label:"Playful & Funny"},
+  {id:"love_note", emoji:"💌", label:"Love Note"},
+  {id:"kids_note", emoji:"👪", label:"Family Note"},
+  {id:"encouragement", emoji:"💪", label:"Encouragement"},
+  {id:"gratitude", emoji:"🌸", label:"Gratitude"},
+  {id:"celebrate", emoji:"✨", label:"Celebrate"},
+  {id:"comfort", emoji:"🫶", label:"Comfort & Support"}
+];
+var STUDENT_ATHLETE_PILLARS=[
+  {id:"gameday", emoji:"🏀", label:"Game Day"},
+  {id:"study", emoji:"📚", label:"Study Grind"},
+  {id:"teammate", emoji:"🙌", label:"Teammate Shoutout"},
+  {id:"practice", emoji:"🏃", label:"Practice Mode"},
+  {id:"win", emoji:"🏆", label:"Big Win"},
+  {id:"bounceback", emoji:"🔥", label:"Bounce Back"},
+  {id:"school", emoji:"🎓", label:"School Life"},
+  {id:"goals", emoji:"🎯", label:"Goals & Focus"}
+];
+var QUICK_STARTERS=[
+  {emoji:"🏡", label:"Real Estate"},
+  {emoji:"👨‍👩‍👧", label:"Parenting"},
+  {emoji:"💪", label:"Fitness"},
+  {emoji:"💼", label:"Business Tips"},
+  {emoji:"✨", label:"Motivation"},
+  {emoji:"💄", label:"Beauty"},
+  {emoji:"🍽️", label:"Food & Reviews"},
+  {emoji:"🙏", label:"Faith"},
+  {emoji:"🎮", label:"Gaming"},
+  {emoji:"🎵", label:"Music"}
+];
+function getStarterPack(profile){
+  if(profile==="personal") return CONNECTION_PILLARS.slice();
+  if(profile==="other") return STUDENT_ATHLETE_PILLARS.slice();
+  return LEGACY_PILLARS.slice();
+}
+function getStarterPackName(profile){
+  if(profile==="personal") return "Connection Pack";
+  if(profile==="other") return "Student/Athlete Pack";
+  return "Legacy Pack";
+}
+function makePillarId(label){
+  return "p_"+label.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,30)+"_"+Math.random().toString(36).slice(2,6);
+}
+function inferEmoji(label){
+  var t=(label||"").toLowerCase();
+  if(/home|house|real estate|realtor|listing|property/.test(t)) return "🏡";
+  if(/parent|family|kid|child|coparent/.test(t)) return "👨‍👩‍👧";
+  if(/fit|gym|workout|health|wellness/.test(t)) return "💪";
+  if(/food|restaurant|recipe|cook/.test(t)) return "🍽️";
+  if(/beauty|hair|makeup|skin|lash|nail/.test(t)) return "💄";
+  if(/faith|church|pray|bible/.test(t)) return "🙏";
+  if(/business|brand|marketing|sales|client/.test(t)) return "💼";
+  if(/money|finance|invest|credit/.test(t)) return "💰";
+  if(/travel|trip|vacation/.test(t)) return "✈️";
+  if(/sport|game|athlete|team|coach|practice|ball/.test(t)) return "🏀";
+  if(/school|study|class|student|homework/.test(t)) return "📚";
+  if(/game|gaming|stream|twitch/.test(t)) return "🎮";
+  return "📌";
+}
+function getPillarStoreKey(){ return "thp_profile_pillars_"+activeProfile; }
+function ensureStarterPack(profile){
+  var key="thp_profile_pillars_"+(profile||activeProfile);
+  try{
+    var existing=JSON.parse(localStorage.getItem(key)||"null");
+    if(existing && Array.isArray(existing) && existing.length) return existing;
+  }catch(e){}
+  var pack=getStarterPack(profile||activeProfile);
+  try{ localStorage.setItem(key, JSON.stringify(pack)); }catch(e){}
+  return pack;
+}
+function loadProfilePillars(profile){
+  var key="thp_profile_pillars_"+(profile||activeProfile);
+  try{
+    var data=JSON.parse(localStorage.getItem(key)||"null");
+    if(Array.isArray(data) && data.length) return data;
+  }catch(e){}
+  return ensureStarterPack(profile||activeProfile);
+}
+function saveProfilePillars(profile, pillars){
+  try{ localStorage.setItem("thp_profile_pillars_"+(profile||activeProfile), JSON.stringify(pillars||[])); }catch(e){}
+}
+function getActivePillars(){ return loadProfilePillars(activeProfile); }
+var CAPS={
+  peace:["Peace is not something you find once and keep forever. It is a choice you make again and again, even when everything around you feels loud. Some days that choice is hard. But you are still here making it and that is everything.","You do not have to explain your need for quiet. You do not have to justify stepping back from things that drain you. Protecting your peace is not selfish. It is the most important work you will ever do.","Healing taught me that peace comes in small moments first. A deep breath. A walk alone. A morning without your phone. You build a peaceful life one tiny choice at a time. Start where you are.","Some people mistake your peace for weakness. Let them. You know what it cost you to get here. You know what you walked away from. That is not weakness -- that is wisdom.","Not everyone deserves access to you. Your time, your energy, your presence -- these are not unlimited resources. Guard them. Invest them in people and places that return the peace you pour out.","There is a version of your life that is quieter, softer, and more yours than what you are living right now. You get there by saying no more. By choosing stillness over chaos. One boundary at a time.","Peace of mind is not a luxury. It is a necessity. And anything or anyone consistently stealing it from you needs to be examined seriously. You deserve to feel safe in your own life.","The moment I stopped chasing things that were never meant for me was the moment I started actually feeling free. Peace is not the absence of problems -- it is knowing you will be okay regardless.","You cannot find peace by avoiding your life. You find it by building a life you do not need to escape from. That takes time. That takes courage. But it is absolutely worth building.","Rest is productive. Stillness is powerful. Doing nothing is sometimes the most healing thing you can do. Stop measuring your worth by how busy you are."],
+  mental:["Mental health is not just about the hard days. It is about learning to understand yourself -- why you react, why you shut down, why certain things hit differently. That self-awareness is not weakness. It is one of the bravest things you can build.","Some days your mind is working against you and that is okay. You do not have to win every battle with your thoughts. You just have to keep showing up -- for therapy, for your habits, for yourself. Progress is still progress even when it is invisible.","Nobody talks about how exhausting it is to heal while still having to function. Go to work. Raise kids. Smile. But you are doing it. And the fact that you are still standing, still trying -- that deserves to be seen.","Therapy is not for broken people. It is for people who are tired of carrying everything alone and brave enough to ask for help. That is strength, not weakness.","Your mental health affects everything. Your relationships, your parenting, your work, your body. Taking care of your mind is not optional -- it is foundational to every other part of your life.","Healing is not linear and nobody warns you about that. Some weeks you feel unstoppable. Other weeks you are back at square one. That is not failure. That is just what real recovery looks like.","You are allowed to have bad mental health days without having to explain them to anyone. You do not owe anyone a performance of being okay when you are not.","The version of you that learned to survive in chaos deserves compassion, not judgment. You did what you had to do. Now you get to learn how to do things differently.","Anxiety lies. Depression lies. Your darkest thoughts are not facts -- they are symptoms. Please do not make permanent decisions based on temporary pain.","There is no finish line in mental health. It is ongoing maintenance, like everything else worth keeping. Check in with yourself. Adjust. Rest. Keep going."],
+  physical:["Your body has carried you through every hard thing you have ever survived. Every late night, every breakdown, every day you did not think you would make it through. It deserves to be nourished, rested, and moved with love -- not punished.","Physical health is not about looking a certain way. It is about feeling alive in your own skin. It is about having energy for the people you love. It is about showing up as your whole self. That is worth working for.","Start with five minutes. Seriously. Five minutes of movement, five minutes of water, five minutes of rest. Health is built in tiny moments of showing up. You do not need a perfect plan -- you need consistency.","Sleep is not laziness. Water is not optional. Food is not the enemy. Your body is doing its best with what you give it. Give it something worth working with.","The connection between your physical health and your mental health is not a suggestion -- it is science. Moving your body changes your brain chemistry. Even a short walk can shift how you feel.","Stop waiting until you feel motivated to take care of your body. Motivation follows action -- not the other way around. Do the thing first. The feeling comes after.","Your body is not a before photo. It is not a project. It is the home you live in every single day. Treat it accordingly -- with consistency, with respect, with patience.","Chronic stress lives in the body. Trauma lives in the body. Part of healing is learning to listen to what your physical self has been trying to tell you all along.","You do not need a gym membership or a perfect diet to be healthy. You need water, sleep, movement, and food that actually fuels you. Start with the basics. Build from there.","Recovery days are part of training. Rest is part of the process. Pushing through every single day without recovery is not strength -- it is how you burn out and break down."],
+  children:["Children do not need perfect parents. They need safe ones. They need to know their feelings are allowed, their voices matter, and that home is somewhere they never have to be afraid. That kind of safety changes everything.","If a relationship makes someone feel small, ashamed, or scared to speak up -- that is not love, that is control. Teaching children to recognize the difference is one of the most powerful things we can do for their future.","You are not overreacting when something feels wrong in how a child is being treated. Trust that instinct. Speak up. Be the adult who believed them, protected them, showed them they were worth fighting for.","Children who are heard become adults who know their voice matters. Children who are seen become adults who do not shrink themselves to earn love. What you pour into them now shapes everything.","Breaking generational cycles is hard, uncomfortable, and deeply necessary. You cannot give your children what was never given to you -- but you can decide to learn it. That decision changes everything.","A child who grows up in a home full of yelling and tension does not just survive it -- they absorb it. They carry it. The environment you create is the foundation they build their entire identity on.","Protecting your children sometimes means protecting them from adults they love. That is one of the hardest things a parent will ever have to do. But their safety always comes first.","Validate your children's emotions even when you do not understand them. You do not have to agree with how they feel to let them know their feelings are real and allowed.","Children learn how to treat others by watching how the adults in their lives treat people. You are teaching every single day -- whether you realize it or not.","The goal of parenting is not to raise children who obey you. It is to raise humans who trust themselves, know their worth, and can navigate this world with strength and compassion."],
+  fitness:["You do not have to love working out. You just have to respect what your body can become when you stop abandoning it. Show up even when the motivation is not there. Especially then. That is where real strength is built.","Fitness after trauma looks different. Some days you are pushing hard. Other days you are just breathing and moving gently. Both count. Your body is not your enemy -- it has been trying to protect you all along.","The goal is not a number on a scale. The goal is to feel strong enough to live your life fully -- to play with your kids, to walk without pain, to feel proud of what your body can do. Chase that.","Consistency beats intensity every single time. Showing up for a 20-minute workout five days a week will always outperform going hard for one week and quitting. Small and steady wins.","The gym is not punishment for what you ate. Movement is not something you earn. Exercise is a gift you give your body -- something it was literally built to do.","Your only competition is who you were yesterday. Stop comparing your chapter one to someone else's chapter twenty. Run your own race at your own pace.","Strong is not a look. Strong is getting up when everything in you wants to stay down. Strong is doing the work when nobody is watching. Strong is built in private.","Rest days are part of the program. Recovery is when your body actually gets stronger. Skipping rest is not dedication -- it is how you injure yourself and set back everything you have built.","You do not need an hour. You do not need a perfect gym or expensive equipment. You need a decision and a little floor space. Start there. Build from there.","Working out changed my mental health before it ever changed my body. Movement is medicine. Even on the days it is the last thing you want to do -- especially on those days."],
+  inspiration:["You have survived every hard day so far. Every one. That is not luck -- that is strength you did not even know you had. Keep going. The version of you on the other side of this is worth fighting for.","It is okay if your progress looks different from everyone else. Healing is not a race. Growth is not a competition. The only person you need to be better than is who you were yesterday. And you already are.","Some days just getting out of bed is the win. Some days it is a breakthrough. Both count. Both matter. Never give up on yourself -- you are further along than you think, and you are never as alone as it feels.","The fact that you are still trying after everything you have been through is remarkable. Do not minimize that. Most people would have given up by now. You did not. That means something.","Your story is not over. This chapter -- the hard one, the confusing one, the one where nothing makes sense yet -- is not the end. Keep writing. Keep going.","You were not built for a small life. Not after everything you have survived. The pain was shaping you for something bigger. Trust the process even when you cannot see the outcome yet.","Stop waiting for permission to become who you already know you are meant to be. Nobody is coming to hand you that. You have to decide -- and then you have to do the work.","Difficult roads often lead to the most beautiful destinations. You would not appreciate the view if you had not done the climb. Keep climbing.","One year from now you will wish you had started today. Whatever it is -- the goal, the change, the boundary, the new chapter -- start. Even imperfectly. Start.","Give yourself credit for how far you have come. You have been through things that would have broken most people. And here you are. Still standing. Still fighting. That deserves recognition."],
+  comedy:["Healing era mood: canceled plans, talking to my therapist more than my friends, and crying at a paper towel commercial because it looked like a hug. We are thriving.","Me before healing: I am fine. Me during healing: I am NOT fine and I have seventeen journal entries, a boundary, and a playlist about it. Growth looks different for everyone.","Nobody told me that healing would mean going to bed at 9pm, saying no to things I used to say yes to just to be liked, and genuinely enjoying a quiet Saturday. Turns out peace is the glow up.","My love language is now: do not call me without texting first, respect my boundaries, and let me leave the party when I am ready without making it a whole thing.","Plot twist: the most toxic relationship I was ever in was with the version of myself that kept saying yes when I meant no. We broke up. It was messy. I am better now.","Therapist: and how does that make you feel? Me: like I need three more sessions and a nap. Therapist: okay but also maybe journal about-- Me: I have fourteen journals.","Before healing I thought setting boundaries was mean. Now I realize it was the most loving thing I could do -- for them and absolutely for myself.","My villain era was actually just me finally deciding my needs mattered too. Funny how that works.","Friendly reminder that unbothered is a lifestyle, not a mood. It takes practice, therapy, and probably some deep breathing, but it is absolutely achievable.","I used to bend over backwards for people who would not even lean slightly in my direction. Now I stretch -- but only for things that are actually good for me."],
+  relationships:["A boundary is not a wall to keep people out. It is a door with a lock -- and you get to decide who has the key. You are allowed to protect your energy without explanation or apology.","The right relationships do not drain you. They do not leave you anxious, second-guessing, or shrinking yourself to fit. You deserve people who make you feel safe just being exactly who you are.","Healing in relationships means learning the difference between someone who loves you on your good days and someone who stays on your hard ones. You deserve the kind that stays. Do not settle for less.","You cannot pour from an empty cup. But you also cannot keep pouring for people who never refill you. Relationships are supposed to be mutual. If they are not -- that is information.","Red flags are not always loud. Sometimes they are quiet patterns -- the way someone dismisses your feelings, the way you feel smaller after talking to them. Pay attention to how people make you feel.","Not every relationship deserves a second chance. Some people show you exactly who they are the first time. Believe them. You do not have to set yourself on fire to give someone else warmth.","Loving someone does not mean tolerating disrespect. Love and boundaries are not opposites -- healthy love actually requires them. You can care deeply and still hold your line.","The most important relationship you will ever have is the one you have with yourself. Every other relationship in your life will reflect that one back to you.","Distance is not always about geography. Sometimes the people you need space from are right there in the same room. Emotional distance is a valid form of protection.","Outgrowing people is not betrayal. It is growth. As you heal, your standards shift. Your tolerance for certain behavior changes. That is not you being difficult -- that is you knowing your worth."],
+  selflove:["You do not have to earn rest. You do not have to earn kindness. You are worthy right now -- not after you lose the weight, fix the issue, or become someone different. Right now.","Self love is not bubble baths and face masks -- though those are nice too. It is keeping promises to yourself. It is walking away from things that dim you. It is choosing yourself even when it is hard. That is the real work.","The way you talk to yourself matters more than you know. You are listening to every word. Speak to yourself like someone you are rooting for -- because you should be. You deserve your own love first.","You have been through enough to know your own strength. You have survived things that would have broken other people. Give yourself credit for that. You earned it.","Choosing yourself is not selfish. It is survival. You cannot show up for your children, your work, your purpose -- if you are running on empty and pretending you are fine.","You deserve the same grace you give to everyone else. The same patience. The same forgiveness. The same second chances. Start treating yourself accordingly.","Your needs are not too much. Your feelings are not too much. You are not too much. You have just been around people with too little capacity. There is a difference.","Self love means not going back to things that have already shown you they are not good for you. No matter how comfortable the familiar feels. Growth requires staying gone.","Stop apologizing for taking up space. For having needs. For wanting more. You were not put here to shrink. You were put here to expand into your full self.","One of the most radical things you can do is decide you are worth investing in. Your time, your healing, your growth -- these are not luxuries. They are necessities."],
+  coparenting:["Co-parenting is not about having a perfect relationship with your ex. It is about giving your children two parents who put them first, even when it is hard. Your kids do not need you to agree on everything -- they need to feel loved and safe by both of you.","Some days co-parenting will push every single one of your buttons. That is normal. Take a breath, respond and not react, and keep your child at the center. You do not have to like the situation to handle it with grace.","Successful co-parenting is not measured by how well you get along with your co-parent. It is measured by how secure, loved, and protected your children feel. Keep showing up for them. That is the whole job.","Your children are watching how you handle conflict, stress, and disappointment. What you model in co-parenting is teaching them how to handle hard relationships for the rest of their lives.","It is okay to grieve the family you thought you would have while still building the best version of the one you do have. Both things can be true at the same time.","Never put your children in the middle of adult conflict. They did not choose this situation. They should never feel like they have to choose sides or carry messages between parents.","Consistency is the most powerful gift you can give a child navigating two households. Consistent love, consistent routine, consistent safety. That is what they need most.","You do not have to be friends with your co-parent. You have to be business partners with a shared mission -- and that mission is your child's wellbeing. Keep it professional. Keep it focused.","Healing your own wounds makes you a better co-parent. The less triggered and reactive you are, the more clearly you can focus on what your children actually need from you.","The long game in co-parenting is your child growing up emotionally healthy and knowing both parents love them. Everything else -- the disagreements, the frustrations -- is secondary to that."],
+  parallel:["Parallel parenting exists because sometimes the healthiest thing you can do for your children is to limit direct contact with a toxic co-parent. It is not giving up. It is protecting your peace AND your kids at the same time. That takes real strength.","In parallel parenting you stop trying to change the other parent and start focusing entirely on what happens in your home. You cannot control their house. You can control yours -- and you can make it the safest, most loving place your children know.","Parallel parenting means communicating through apps, keeping exchanges brief, and building your own world for your kids independent of the chaos. It feels lonely sometimes. But choosing your children peace over conflict is one of the most powerful things a parent can do.","You cannot co-parent with someone who sees the children as tools. Parallel parenting is not a failure -- it is a boundary. A very necessary one.","Grey rock. Document everything. Communicate only in writing. Parallel parenting is a strategy, not a punishment. It is how you protect your mental health while still showing up for your kids.","In a high-conflict situation, disengaging is not weakness -- it is wisdom. You cannot reason with someone who is not operating in good faith. Stop trying. Protect your peace. Protect your kids.","Your home is your sanctuary. What happens under your roof, in your presence, in your time with your children -- that is what you control. Make it count. Make it safe. Make it full of love.","Parallel parenting taught me that I do not need the other parent to cooperate for my children to thrive. I just need to be consistent, present, and healthy in my own home. That is enough.","Some people do not change. Some situations do not improve. Parallel parenting is the long-term strategy for raising healthy kids in spite of that reality. It is hard. It is also necessary.","The goal of parallel parenting is not to win. It is to survive and protect. To raise children who feel loved in at least one stable home. That home can absolutely be yours."]
+};
+
+
+CAPS.morning=[
+"Good morning. I hope today feels lighter, kinder, and more peaceful than yesterday.",
+"Just a little morning reminder: you are loved, you are capable, and today is a fresh start.",
+"Sending you a soft start to the day. Drink some water, take a breath, and give yourself grace."
+];
+CAPS.proud=[
+"I am proud of you for how hard you keep trying, even when nobody sees the effort behind it.",
+"You may not realize it yet, but you are growing in beautiful ways. I am proud of you.",
+"Proud of you for showing up, for staying kind, and for keeping your heart open."
+];
+CAPS.checkin=[
+"Just checking in on you. How is your heart today, really?",
+"You crossed my mind, so I wanted to remind you that you do not have to carry everything alone.",
+"This is your reminder that someone cares about how you are doing, not just what you are doing."
+];
+CAPS.laugh=[
+"Official reminder: you are way too cute to be stressed all day. Go laugh a little.",
+"If today is doing too much, we are allowed to be dramatic and still keep going.",
+"Sending a smile, a side-eye for your stress, and permission to have a better day."
+];
+CAPS.love_note=[
+"You matter to me in ways I do not always say out loud, so here is me saying it now.",
+"Just a love note to remind you that your presence makes life softer, warmer, and better.",
+"In case nobody told you today: you are deeply appreciated and easy to love."
+];
+CAPS.kids_note=[
+"I hope you always remember this: you are loved for who you are, not just for what you do.",
+"You make this family brighter just by being yourself.",
+"No matter how big you get, you will always be one of my favorite people in the world."
+];
+CAPS.encouragement=[
+"Take the next small step. That is enough for today.",
+"You do not need a perfect plan to make progress. You just need to keep going.",
+"Hard days do not erase your strength. Rest if you need to, then rise again."
+];
+CAPS.gratitude=[
+"Today I am grateful for simple things, steady love, and the people who make life feel safe.",
+"Gratitude changes the room. Thank you for being one of the good parts of my life.",
+"Some people are gifts in human form. Thank you for being one of them."
+];
+CAPS.celebrate=[
+"Big or small, this moment matters. Celebrate how far you have come.",
+"You did that. Pause and let yourself feel proud of this moment.",
+"Not every win has to be loud, but every win deserves to be honored."
+];
+CAPS.comfort=[
+"You are allowed to have a hard day and still be deeply loved.",
+"If today feels heavy, let this message be a little proof that you are not alone.",
+"Be gentle with yourself tonight. Some seasons call for softness, not pressure."
+];
+var THEMES={
+  cream:{bg:"#f5f0e8",text:"#1e4a40",sub:"#4a7a6e",accent:"#c8a84a"},
+  sage:{bg:"#e8ede8",text:"#1e3d2f",sub:"#3d6b50",accent:"#8fbc8f"},
+  dusk:{bg:"#1a2332",text:"#e8dfc8",sub:"#a8c8b8",accent:"#c8a84a"},
+  blush:{bg:"#f5e8ee",text:"#6b2d4a",sub:"#9a5070",accent:"#d4848a"},
+  sky:{bg:"#e8f0f5",text:"#1a3a52",sub:"#3a6a8a",accent:"#6aace0"},
+  lavender:{bg:"#ede8f5",text:"#3a2d6b",sub:"#6a5a9a",accent:"#9a84d4"},
+  sand:{bg:"#f5efe0",text:"#5a3a1a",sub:"#8a6a4a",accent:"#c8943a"},
+  forest:{bg:"#0d1f0d",text:"#c8e8c8",sub:"#7aaa7a",accent:"#5aaa5a"},
+  rose:{bg:"#2a0d0d",text:"#f0d8d8",sub:"#c89090",accent:"#e07878"}
+};
+
+var CTA={save:"Save this post",tag:"Tag someone who needs this",follow:"Follow for more",comment:"Comment your thoughts below"};
+var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var BLANK="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+// STATE
+var activeProfile="business";
+var settings={};
+var HASHTAGS=[];
+var LOGO="";
+var sel={};
+var blendMode=false;
+var curCap="";
+var curPillarId="";
+var usedIdx={};
+var bgMode="solid";
+var curTheme="cream";
+var photoURL=null;previewPhotoMeta=null;
+var bgPosX=50;
+var bgPosY=50;
+var bgZoom=100;
+var dimAmt=0.5;
+var dimCol="dark";
+var txtColor=null;
+var logoSize=120;
+var curFont="Georgia,serif";
+var txtSize=14;
+var curLayout="center";
+var curCTA="";
+var curPlatform="ig";
+var showTags=true;
+var aiLen="med";
+var batchTheme="cream";
+var batchSel={};
+var lastRenderedDataURL="";
+var savedCaps=[];
+try{savedCaps=JSON.parse(localStorage.getItem("thp_saved")||"[]");}catch(e){}
+var trackerItems=[];
+try{trackerItems=JSON.parse(localStorage.getItem("thp_tracker")||"[]");}catch(e){}
+
+function getBizName(){return settings.bizName||"";}
+function getHandle(){return settings.handle||"";}
+function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+function copyText(text,btn,lbl){
+  lbl=lbl||"Copy";
+  function fb(){try{var t=document.createElement("textarea");t.value=text;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t);}catch(e){}}
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent=lbl;},2000);}).catch(function(){fb();btn.textContent="Copied!";setTimeout(function(){btn.textContent=lbl;},2000);});
+    }else{fb();btn.textContent="Copied!";setTimeout(function(){btn.textContent=lbl;},2000);}
+  }catch(e){btn.textContent="Copied!";setTimeout(function(){btn.textContent=lbl;},2000);}
+}
+
+function tmb(ids,active){ids.forEach(function(id){var e=document.getElementById(id);if(e)e.className="tmb"+(id===active?" on":"");});}
+
+function getCurrentCaptionText(){
+  var t=document.getElementById("edit-txt");
+  return (t && typeof t.value==="string") ? t.value : (curCap||"");
+}
+
+function makeCard(cap,pillarLabel,pillarId){
+  var d=document.createElement("div");d.className="cap-card";
+  var inner=document.createElement("div");inner.className="cap-inner";
+  var pl=document.createElement("div");pl.className="cap-pillar";pl.textContent=pillarLabel;
+  var tx=document.createElement("p");tx.className="cap-text";tx.textContent=cap;
+  inner.appendChild(pl);inner.appendChild(tx);
+  var acts=document.createElement("div");acts.className="cap-actions";
+  var b1=document.createElement("button");b1.className="cap-btn";b1.textContent="Preview";
+  b1.onclick=(function(c,p){return function(){openPreview(c,p);};})(cap,pillarId);
+  var b2=document.createElement("button");b2.className="cap-btn";b2.textContent="Copy";
+  b2.onclick=(function(c,b){return function(){copyText(c,b,"Copy");};})(cap,b2);
+  var b3=document.createElement("button");b3.className="cap-btn";b3.textContent="Save";
+  b3.onclick=(function(c,l){return function(){saveCaption(c,l);b3.textContent="Saved!";setTimeout(function(){b3.textContent="Save";},2000);};})(cap,pillarLabel);
+  acts.appendChild(b1);acts.appendChild(b2);acts.appendChild(b3);
+  d.appendChild(inner);d.appendChild(acts);
+  return d;
+}
+
+function saveCaption(cap,lbl){savedCaps.unshift({cap:cap,lbl:lbl||"Saved"});persist("thp_saved",savedCaps);}
+
+var TABS=["gen","batch","saved","tracker","settings"];
+function go(tab){
+  TABS.forEach(function(t){
+    var pg=document.getElementById("pg-"+t),btn=document.getElementById("tab-"+t);
+    if(pg)pg.style.display=t===tab?"block":"none";
+    if(btn)btn.className="tab-btn "+(t===tab?"on":"off");
+  });
+  if(tab==="saved")renderSaved();
+  if(tab==="tracker")renderTracker();
+}
+
+function getDefaultProfileSettings(n){
+  if(n==="business"||n==="other"){
+    return {
+      bizName:"The Healing Path.",
+      handle:"@thehealingpath4",
+      tags:["#TheHealingPath","#thehealingpath4","#ProgressNotPerfection","#HealingJourney","#NeverGiveUp"],
+      logo:""
+    };
+  }
+  return {
+    bizName:"",
+    handle:"",
+    tags:["#LoveYou","#ThinkingOfYou","#ProudOfYou"],
+    logo:""
+  };
+}
+function switchProfile(n){
+  activeProfile=n;
+  ensureStarterPack(n);
+  ["business","personal","other"].forEach(function(id){
+    var e=document.getElementById("pr-"+id);if(e)e.className="prof-btn"+(id===n?" on":"");
+    var e2=document.getElementById("ns-"+id);if(e2)e2.className="tmb"+(id===n?" on":"");
+  });
+  var saved={},defs=getDefaultProfileSettings(n);
+  try{saved=JSON.parse(localStorage.getItem("thp_s_"+n)||"{}");}catch(e){}
+  settings.bizName=saved.bizName!==undefined?saved.bizName:defs.bizName;
+  settings.handle=saved.handle!==undefined?saved.handle:defs.handle;
+  settings.tags=saved.tags&&saved.tags.length?saved.tags:defs.tags.slice();
+  settings.logo=saved.logo||defs.logo||"";
+  LOGO=settings.logo;
+  HASHTAGS=settings.tags;
+  sel={};
+  batchSel={};
+  usedIdx={};
+  buildPillarList();
+  buildAiSelects();
+  buildBatchDays();
+  renderManagePillars();
+  renderQuickStarters();
+  updateProfileUI();
+}
+
+function updateProfileUI(){
+  var banner = document.getElementById("logo-missing-banner");
+  if(banner) {
+    var needsLogo = (activeProfile==="business"||activeProfile==="other") && !LOGO;
+    banner.style.display = needsLogo ? "flex" : "none";
+  }
+  var logoSrc=LOGO||"";
+  ["hdr-logo","ig-logo","logo-prev"].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e){e.src=logoSrc||BLANK;e.style.display=logoSrc?"":"none";}
+  });
+  var barLogo=document.getElementById("bar-logo");
+  if(barLogo){barLogo.src=logoSrc||BLANK;barLogo.style.display=logoSrc?"inline":"none";}
+  var hn=document.getElementById("hdr-name");if(hn)hn.textContent=getBizName();
+  var il=document.getElementById("ig-handle-lbl");if(il)il.textContent=(getHandle()||"yourhandle").replace("@","");
+  var bp=document.getElementById("bar-profile");if(bp)bp.textContent=activeProfile.charAt(0).toUpperCase()+activeProfile.slice(1);
+  var bn=document.getElementById("bar-name");if(bn)bn.textContent=getBizName();
+  var bh=document.getElementById("bar-handle");if(bh)bh.textContent=getHandle();
+  var bn2=document.getElementById("s-bizname");if(bn2)bn2.value=settings.bizName;
+  var ih=document.getElementById("s-handle");if(ih)ih.value=settings.handle;
+  var st=document.getElementById("s-tags");if(st)st.value=settings.tags.join("\n");
+  var lp=document.getElementById("logo-upz");if(lp)lp.textContent=LOGO?"Logo uploaded":"Tap to upload logo";
+  var namePh=document.getElementById("s-bizname");if(namePh)namePh.placeholder=activeProfile==="personal"?"Your Name or Family Name":"Your Brand Name";
+  var handlePh=document.getElementById("s-handle");if(handlePh)handlePh.placeholder=activeProfile==="personal"?"@familyhandle or leave blank":"@yourhandle";
+  var tagsArea=document.getElementById("s-tags");if(tagsArea&&!tagsArea.value)tagsArea.placeholder=activeProfile==="personal"?"#LoveYou\n#ThinkingOfYou":"#YourBrand";
+}
+
+function resetLogo(){LOGO="";settings.logo="";updateProfileUI();}
+
+
+
+function saveSettings(){
+  settings.bizName=(document.getElementById("s-bizname").value||"").trim();
+  settings.handle=(document.getElementById("s-handle").value||"").trim();
+  var rawTags=(document.getElementById("s-tags").value||"").split("\n").map(function(t){return t.trim();}).filter(Boolean).map(function(t){return t[0]==="#"?t:"#"+t;});
+  settings.tags=rawTags;HASHTAGS=rawTags;settings.logo=LOGO;
+  try{localStorage.setItem("thp_s_"+activeProfile,JSON.stringify(settings));}catch(e){}
+  updateProfileUI();
+  var st=document.getElementById("s-status");st.textContent="Saved!";setTimeout(function(){st.textContent="";},3000);
+}
+
+// PILLAR LIST
+
+
+function showPillarMsg(msg,color){
+  var el=document.getElementById("pillar-msg");
+  if(!el) return;
+  el.textContent=msg||"";
+  el.style.color=color||"#5a8a78";
+}
+function setSettingsPillarNote(msg,color){
+  var el=document.getElementById("settings-pillar-note");
+  if(!el) return;
+  el.textContent=msg||"";
+  el.style.color=color||"#5a8a78";
+}
+function addQuickStarter(label){
+  var inp=document.getElementById("new-pillar-name");
+  if(inp) inp.value=label;
+  createPillar();
+}
+function renderQuickStarters(){
+  var wrap=document.getElementById("starter-pillars");
+  var outer=document.getElementById("starter-pillar-wrap");
+  if(!wrap||!outer) return;
+  var existing=getActivePillars().map(function(p){return (p.label||"").toLowerCase();});
+  wrap.innerHTML="";
+  QUICK_STARTERS.forEach(function(p){
+    if(existing.indexOf((p.label||"").toLowerCase())!==-1) return;
+    var b=document.createElement("button");
+    b.className="tmb";
+    b.style.flex="0 0 auto";
+    b.textContent=(p.emoji||inferEmoji(p.label))+" "+p.label;
+    b.onclick=function(){ addQuickStarter(p.label); };
+    wrap.appendChild(b);
+  });
+  outer.style.display = wrap.children.length ? "" : "none";
+}
+function renderManagePillars(){
+  var box=document.getElementById("pillars-manage-list");
+  if(!box) return;
+  box.innerHTML="";
+  var pillars=getActivePillars();
+  if(!pillars.length){
+    var empty=document.createElement("div");
+    empty.style.cssText="font-size:11px;color:#5f7a70;padding:8px 2px";
+    empty.textContent="No pillars yet. Restore the starter pack or create one above.";
+    box.appendChild(empty);
+    return;
+  }
+  pillars.forEach(function(p){
+    var chip=document.createElement("div");
+    chip.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(45,92,82,.14);border:1px solid rgba(45,92,82,.28);color:#c8d8c8;font-size:12px";
+    var txt=document.createElement("span");
+    txt.textContent=(p.emoji||"📌")+" "+p.label;
+    var del=document.createElement("button");
+    del.textContent="×";
+    del.style.cssText="border:none;background:none;color:#9ab8ae;font-size:16px;line-height:1;padding:0 0 1px 0";
+    del.onclick=function(){ removePillar(p.id); };
+    chip.appendChild(txt); chip.appendChild(del);
+    box.appendChild(chip);
+  });
+}
+function createPillar(){
+  var inp=document.getElementById("new-pillar-name");
+  if(!inp) return;
+  var label=(inp.value||"").trim().replace(/\s+/g," ");
+  if(!label){ showPillarMsg("Type a pillar name first.","#c87a7a"); return; }
+  var pillars=getActivePillars();
+  if(pillars.some(function(p){return (p.label||"").toLowerCase()===label.toLowerCase();})){
+    showPillarMsg("That pillar already exists.","#c87a7a"); return;
+  }
+  pillars.push({id:makePillarId(label),emoji:inferEmoji(label),label:label});
+  saveProfilePillars(activeProfile,pillars);
+  inp.value="";
+  sel={}; batchSel={}; usedIdx={};
+  buildPillarList(); buildAiSelects(); buildBatchDays();
+  renderManagePillars(); renderQuickStarters();
+  showPillarMsg("Added pillar: "+label,"#5a8a78");
+  setSettingsPillarNote("Custom pillar added to "+getStarterPackName(activeProfile)+".","#5a8a78");
+}
+function removePillar(id){
+  var pillars=getActivePillars().filter(function(p){ return p.id!==id; });
+  saveProfilePillars(activeProfile,pillars);
+  if(sel[id]) delete sel[id];
+  DAYS.forEach(function(d){ if(batchSel[d]===id) delete batchSel[d]; });
+  buildPillarList(); buildAiSelects(); buildBatchDays();
+  renderManagePillars(); renderQuickStarters();
+  showPillarMsg("Pillar removed.","#5a8a78");
+}
+function restoreStarterPack(){
+  var pack=getStarterPack(activeProfile);
+  saveProfilePillars(activeProfile, pack);
+  sel={}; batchSel={}; usedIdx={};
+  buildPillarList(); buildAiSelects(); buildBatchDays();
+  renderManagePillars(); renderQuickStarters();
+  showPillarMsg(getStarterPackName(activeProfile)+" restored.","#5a8a78");
+  setSettingsPillarNote(getStarterPackName(activeProfile)+" restored.","#5a8a78");
+}
+function generateGenericPillarPool(label){
+  var topic=(label||"this topic").trim();
+  var lower=topic.toLowerCase();
+  var start="People follow you for clarity, encouragement, and consistency around "+topic+".";
+  var lines=[
+    "Small lessons about "+lower+" can build a lot of trust when you share them consistently.",
+    "You do not need a perfect post every time. One clear message about "+lower+" can help someone today.",
+    "The best content about "+lower+" is useful, honest, and easy to apply in real life.",
+    "When you share "+lower+" often, your audience starts to understand what you stand for.",
+    "A simple post about "+lower+" can open the door to real conversation and connection."
+  ];
+  return [
+    start+" Start with one helpful idea and say it clearly.",
+    "Your pillar does not need to be complicated. Talk about "+lower+" in a way that feels natural, useful, and true to you.",
+    "If "+lower+" matters to your audience, keep showing up with clear tips, simple reminders, and real examples they can remember.",
+    "Consistency wins. Keep creating around "+lower+" so people know exactly what kind of value they can expect from you.",
+    lines[Math.floor(Math.random()*lines.length)]
+  ];
+}
+function buildPillarList(){
+  var pl=document.getElementById("pillar-list");
+  if(!pl)return;
+  pl.innerHTML="";
+  var pillars=getActivePillars();
+  if(!pillars.length){
+    pl.innerHTML='<div style="text-align:center;color:#5f7a70;font-size:12px;padding:14px;border:1px dashed rgba(45,92,82,.28);border-radius:12px;background:rgba(255,255,255,.02)">Use the starter pack or create your first custom pillar above to start generating content.</div>';
+  }else{
+    pillars.forEach(function(p){
+      var b=document.createElement("button");b.className="pillar-btn";b.id="pb-"+p.id;
+      var left=document.createElement("div");left.style.cssText="display:flex;align-items:center;gap:10px";
+      var em=document.createElement("span");em.style.fontSize="17px";em.textContent=p.emoji||"📌";
+      var nm=document.createElement("span");nm.textContent=p.label;
+      left.appendChild(em);left.appendChild(nm);
+      var chk=document.createElement("div");chk.className="chk";chk.id="chk-"+p.id;
+      b.appendChild(left);b.appendChild(chk);
+      b.onclick=function(){togglePillar(p.id);};
+      pl.appendChild(b);
+    });
+  }
+  renderManagePillars();
+  renderQuickStarters();
+  var h=document.getElementById("hint");
+  if(h)h.textContent=pillars.length?"Tap to select":"Select a pillar and instantly generate a Quick Post, use the Idea Builder for longer content, or write your own caption.";
+}
+
+
+function togglePillar(id){
+  if(blendMode&&!sel[id]){
+    var cnt=getActivePillars().filter(function(p){return sel[p.id];}).length;
+    if(cnt>=2){
+      var h=document.getElementById("hint");h.textContent="Blend Mode: deselect one first";h.style.color="#c87a7a";
+      setTimeout(function(){h.textContent="Select exactly 2 pillars";h.style.color="#6abaa8";},2500);return;
+    }
+  }
+  sel[id]=!sel[id];
+  var b=document.getElementById("pb-"+id),c=document.getElementById("chk-"+id);
+  b.className="pillar-btn"+(sel[id]?" sel":"");
+  c.className="chk"+(sel[id]?" on":"");c.textContent=sel[id]?"v":"";
+  var cnt=getActivePillars().filter(function(p){return sel[p.id];}).length;
+  var h=document.getElementById("hint");h.style.color=blendMode?"#6abaa8":"#3a5a50";
+  h.textContent=blendMode?(cnt===0?"Select exactly 2 pillars":cnt===1?"1 of 2 selected":"Ready -- tap Generate"):(cnt===0?"Tap to select":cnt+" pillar"+(cnt>1?"s":"")+" selected");
+}
+
+function selAll(){getActivePillars().forEach(function(p){if(!sel[p.id])togglePillar(p.id);});}
+function clrAll(){getActivePillars().forEach(function(p){if(sel[p.id])togglePillar(p.id);});}
+
+function toggleBlend(){
+  blendMode=!blendMode;
+  var chk=document.getElementById("blend-chk"),h=document.getElementById("blend-hint");
+  chk.style.background=blendMode?"#2d5c52":"transparent";chk.style.borderColor=blendMode?"#2d5c52":"rgba(45,92,82,.5)";chk.textContent=blendMode?"v":"";
+  document.getElementById("blend-row").style.background=blendMode?"rgba(45,92,82,.18)":"rgba(45,92,82,.08)";
+  h.textContent=blendMode?"Select exactly 2 pillars":"Blend 2 pillars into one caption";h.style.color=blendMode?"#6abaa8":"#3a5a50";
+  var hint=document.getElementById("hint");hint.textContent=blendMode?"Select exactly 2 pillars":"Tap to select";hint.style.color=blendMode?"#6abaa8":"#3a5a50";
+  if(blendMode)clrAll();
+}
+
+
+function getPillarCap(id){
+  if(!usedIdx[id])usedIdx[id]=[];
+  var pillar=getActivePillars().find(function(p){ return p.id===id; });
+  var pool=CAPS[id] || generateGenericPillarPool(pillar ? pillar.label : id);
+  var avail=pool.map(function(_,i){return i;}).filter(function(i){return usedIdx[id].indexOf(i)===-1;});
+  if(!avail.length){usedIdx[id]=[];avail=pool.map(function(_,i){return i;});}
+  var idx=avail[Math.floor(Math.random()*avail.length)];usedIdx[id].push(idx);
+  return pool[idx];
+}
+
+function blendCaps(id1,id2){
+  var p1=getActivePillars().find(function(p){return p.id===id1;});
+  var p2=getActivePillars().find(function(p){return p.id===id2;});
+  var c1=getPillarCap(id1);
+  var c2=getPillarCap(id2);
+  var s1=c1.replace(/([.!?]) /g,"$1|").split("|").filter(Boolean);
+  var s2=c2.replace(/([.!?]) /g,"$1|").split("|").filter(Boolean);
+  var intro=(s1[0]||c1).trim();
+  var mid=(s2[0]||c2).trim();
+  var l1=p1?p1.label:id1, l2=p2?p2.label:id2;
+  return intro+" "+mid+" Together, "+l1.toLowerCase()+" and "+l2.toLowerCase()+" create a stronger, more useful message.";
+}
+
+function generate(){
+
+  var chosen=getActivePillars().filter(function(p){return sel[p.id];});
+  if(!chosen.length){alert("Select at least one pillar!");return;}
+  if(blendMode&&chosen.length!==2){alert("Blend Mode needs exactly 2 pillars.");return;}
+  var cl=document.getElementById("cap-list");cl.innerHTML="";
+  if(blendMode){
+    var p1=chosen[0],p2=chosen[1];
+    cl.appendChild(makeCard(blendCaps(p1.id,p2.id),p1.label+" x "+p2.label,p1.id));
+  }else{
+    chosen.forEach(function(p){cl.appendChild(makeCard(getPillarCap(p.id),p.label,p.id));});
+  }
+}
+
+// AI WRITE
+function buildAiSelects(){
+  ["ai-p1","ai-p2"].forEach(function(sid){
+    var s=document.getElementById(sid);if(!s)return;
+    s.innerHTML="";
+    var o0=document.createElement("option");o0.value="";o0.textContent=sid==="ai-p1"?"-- Choose pillar --":"-- No blend --";s.appendChild(o0);
+    getActivePillars().forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent=p.label;s.appendChild(o);});
+  });
+}
+
+function setAiLen(l){aiLen=l;tmb(["al-short","al-med","al-long","al-trio"],"al-"+l);}
+
+function aiWrite(){
+  var topic=(document.getElementById("ai-topic").value||"").trim();
+  var p1id=(document.getElementById("ai-p1").value||"");
+  var p2id=(document.getElementById("ai-p2").value||"");
+  var p1=p1id?getActivePillars().find(function(p){return p.id===p1id;}):null;
+  var p2=p2id?getActivePillars().find(function(p){return p.id===p2id;}):null;
+  if(!topic&&!p1&&!p2){alert("Type a topic or pick a pillar!");return;}
+  var out=document.getElementById("ai-out");out.innerHTML="";
+  if(topic){
+    var caps=buildTopicCaptions(topic,p1,p2,aiLen);
+    caps.forEach(function(item){out.appendChild(makeCard(item.cap,item.lbl,p1id||""));});
+    return;
+  }
+  if(aiLen==="trio"){
+    var pool=(CAPS[p1.id]||generateGenericPillarPool(p1.label)),pool2=p2?(CAPS[p2.id]||generateGenericPillarPool(p2.label)):pool;
+    out.appendChild(makeCard(pool[Math.floor(Math.random()*pool.length)].split(".")[0].trim()+".","Short - "+p1.label,p1id));
+    out.appendChild(makeCard(p2?blendCaps(p1.id,p2.id):pool[Math.floor(Math.random()*pool.length)],"Medium"+(p2?" - "+p1.label+" x "+p2.label:""),p1id));
+    out.appendChild(makeCard(pool[Math.floor(Math.random()*pool.length)]+" "+pool2[Math.floor(Math.random()*pool2.length)].split(".")[0].trim()+".","Long - "+p1.label,p1id));
+  }else{
+    var cap,lbl;
+    if(p1&&p2){cap=blendCaps(p1.id,p2.id);lbl=p1.label+" x "+p2.label;}
+    else if(p1){cap=getPillarCap(p1.id);lbl=p1.label;}
+    else{cap=getPillarCap(p2.id);lbl=p2.label;}
+    out.appendChild(makeCard(cap,lbl,p1id||p2id));
+  }
+}
+
+function buildTopicCaptions(topic,p1,p2,len){
+  var t=topic.trim();
+  var tl=t.toLowerCase();
+
+  // Detect topic type to shape the caption
+  var isFather = /father|dad|daddy|paternal|fatherhood/.test(tl);
+  var isMother = /mother|mom|mommy|maternal|motherhood/.test(tl);
+  var isKids   = /kid|child|son|daughter|parent|baby/.test(tl);
+  var isSport  = /basketball|football|soccer|gym|sport|workout|run|fitness|train/.test(tl);
+  var isHeal   = /heal|trauma|pain|hurt|recover|grief|loss|broke|broken/.test(tl);
+  var isLove   = /love|relation|partner|marriage|divorce|ex|heart/.test(tl);
+  var isMoney  = /money|financ|broke|debt|wealth|income|pay/.test(tl);
+  var isMental = /anxiety|depress|stress|mental|mind|therapy|therapist/.test(tl);
+
+  var lines=[];
+
+  if(isSport){
+    lines=[
+      t.charAt(0).toUpperCase()+t.slice(1)+" is more than a game. For a lot of us it is an outlet, a release, a way to process everything we cannot say out loud.",
+      "Some people go to therapy. Some people lace up. "+t.charAt(0).toUpperCase()+t.slice(1)+" has saved more people than it gets credit for. Do not underestimate what movement does for the mind.",
+      "The discipline you build on the court or in the gym -- that carries over. Into your patience. Into your mindset. Into how you handle life when it gets hard. Keep showing up."
+    ];
+  } else if(isFather){
+    lines=[
+      "Fathers are needed. Not just as providers -- as present, engaged, emotionally available human beings. The impact of a father who shows up cannot be overstated.",
+      "A father who is present changes the trajectory of his children's lives. Not perfect. Not rich. Just there -- consistent, safe, and real. That is everything.",
+      "We talk a lot about what happens when fathers are absent. Let us also talk about what happens when they stay. When they heal their own wounds so their kids do not inherit them. That is the real work."
+    ];
+  } else if(isMother){
+    lines=[
+      "Mothers carry so much in silence. The worry, the planning, the holding it together when everything is falling apart. It deserves to be seen and said out loud.",
+      "A mother's love is not just felt -- it is built. Day by day, sacrifice by sacrifice, choice by choice. There is no job harder or more important.",
+      "To every mother doing it alone, doing it scared, doing it while healing herself at the same time -- you are not invisible. What you are doing matters more than you know."
+    ];
+  } else if(isHeal){
+    lines=[
+      t.charAt(0).toUpperCase()+t.slice(1)+" is real. And it does not have a timeline. Give yourself permission to take up space in your own healing process.",
+      "Nobody prepares you for what "+tl+" actually feels like. The waves of it. The way it shows up when you least expect it. You are not weak for feeling it -- you are human.",
+      "Healing from "+tl+" is not linear. Some days you will feel free. Other days it will hit you all over again. Both are part of the process. Keep going anyway."
+    ];
+  } else if(isLove){
+    lines=[
+      "When it comes to "+tl+", the hardest part is not the ending -- it is unlearning the patterns it left behind. That is where the real healing begins.",
+      t.charAt(0).toUpperCase()+t.slice(1)+" should not cost you your peace. If it does, that is information worth listening to.",
+      "Not every chapter of "+tl+" ends the way you planned. But every ending creates space for something healthier, something safer, something real."
+    ];
+  } else if(isMental){
+    lines=[
+      t.charAt(0).toUpperCase()+t.slice(1)+" is not a character flaw. It is something millions of people navigate every single day -- often quietly, often alone. You do not have to be alone in it.",
+      "Talking about "+tl+" out loud is still one of the most courageous things a person can do. The stigma is fading. The conversation is growing. Keep adding your voice.",
+      "Managing "+tl+" is not a one-time fix. It is a practice -- medication, therapy, movement, rest, community. You get to build the combination that works for you."
+    ];
+  } else if(isMoney){
+    lines=[
+      "Financial stress is one of the most silent sources of anxiety there is. Nobody warns you how much money -- or the lack of it -- affects your mental health, your relationships, everything.",
+      "Building from nothing is not just a financial journey. It is a mindset shift, an identity shift, a healing journey. Give yourself credit for every step forward.",
+      t.charAt(0).toUpperCase()+t.slice(1)+" is a real conversation we need to have more openly. Shame around it keeps people stuck. Talking about it starts to break that."
+    ];
+  } else {
+    // Generic but still relevant - use topic naturally in real sentences
+    lines=[
+      t.charAt(0).toUpperCase()+t.slice(1)+" is something more people are going through than you might think. You are not alone in it and you do not have to figure it out in silence.",
+      "Let us talk about "+tl+". Openly, honestly, without judgment. Because the more we normalize these conversations, the less power the silence has.",
+      "Whatever "+tl+" looks like for you right now -- know that growth is possible. Healing is possible. And you do not have to have it all figured out to take the next step."
+    ];
+  }
+
+  // Add pillar sentence if selected
+  var extra="";
+  if(p1){
+    var pool=CAPS[p1.id];
+    extra=" "+pool[Math.floor(Math.random()*pool.length)].split(".")[0].trim()+".";
+  }
+
+  var lbl=p1&&p2?p1.label+" x "+p2.label:(p1?p1.label:(p2?p2.label:"Your Topic"));
+  var short=lines[0].split(".")[0].trim()+".";
+  var med=lines[0];
+  var lng=lines[0]+" "+lines[1];
+
+  if(len==="short")return[{cap:short,lbl:lbl}];
+  if(len==="long")return[{cap:lng,lbl:lbl}];
+  if(len==="trio")return[{cap:lines[0],lbl:"Short"},{cap:lines[1],lbl:"Medium"},{cap:lines[2]+extra,lbl:"Long"}];
+  return[{cap:med,lbl:lbl}];
+}
+
+// BATCH
+function buildBatchDays(){
+  var bd=document.getElementById("batch-days");
+  if(!bd)return;
+  bd.innerHTML="";
+  DAYS.forEach(function(day){
+    var div=document.createElement("div");div.className="cal-day";
+    var lbl=document.createElement("div");lbl.className="cal-label";lbl.textContent=day;
+    var s=document.createElement("select");s.id="bd-"+day;
+    var o0=document.createElement("option");o0.value="";o0.textContent="-- Skip --";s.appendChild(o0);
+    getActivePillars().forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent=p.label;s.appendChild(o);});
+    s.onchange=function(){batchSel[day]=s.value;};
+    div.appendChild(lbl);div.appendChild(s);bd.appendChild(div);
+  });
+}
+
+function setBatchTheme(t){
+  batchTheme=t;
+  ["cream","sage","dusk","blush","sky","lavender","forest","rose"].forEach(function(id){var e=document.getElementById("bt-"+id);if(e)e.className="tmb"+(id===t?" on":"");});
+}
+
+
+function autoFillBatch(){
+  var rot=getActivePillars();
+  if(!rot.length){
+    alert("Create at least one pillar first.");
+    return;
+  }
+  DAYS.forEach(function(d,i){
+    batchSel[d]=rot[i%rot.length].id;
+    var s=document.getElementById("bd-"+d);if(s)s.value=batchSel[d];
+  });
+  document.getElementById("batch-status").textContent="Auto-filled from your custom pillars!";
+}
+
+
+function previewFromPlanner(){
+  var days=DAYS.filter(function(d){return batchSel[d];});
+  if(!days.length){alert("Assign at least one pillar or tap Auto-fill!");return;}
+  var out=document.getElementById("batch-out");
+  out.innerHTML="";
+  document.getElementById("batch-status").textContent=days.length+" posts ready to preview";
+  days.forEach(function(d){
+    var pid=batchSel[d];
+    var p=getActivePillars().find(function(pp){return pp.id===pid;});
+    var cap=getPillarCap(pid);
+    // Day header
+    var hdr=document.createElement("div");
+    hdr.style.cssText="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a6a60;margin:14px 0 6px";
+    hdr.textContent=d+(p?" -- "+p.label:"");
+    out.appendChild(hdr);
+    out.appendChild(makeCard(cap,(p?p.label:pid),pid));
+  });
+  // Scroll down to results
+  out.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function runBatch(){
+  var days=DAYS.filter(function(d){return batchSel[d];});
+  if(!days.length){alert("Assign at least one pillar or tap Auto-fill!");return;}
+  // Prevent re-run if already generated
+  var btn=document.querySelector("[onclick=\"runBatch()\"]");
+  if(btn&&btn.disabled)return;
+  if(btn){btn.disabled=true;btn.textContent="Generating...";}
+  document.getElementById("batch-status").textContent="Building "+days.length+" posts...";
+  document.getElementById("batch-out").innerHTML="";
+  var posts=days.map(function(d){return{day:d,pid:batchSel[d],cap:getPillarCap(batchSel[d])};});
+  var idx=0,allImgs=[];
+  function next(){
+    if(idx>=posts.length){
+      showBatchResults(posts,allImgs);
+      document.getElementById("batch-status").textContent=posts.length+" posts ready!";
+      if(btn){btn.disabled=false;btn.textContent="Regenerate All";}
+      return;
+    }
+    var post=posts[idx],tc=THEMES[batchTheme],S=1080;
+    var cv=document.createElement("canvas");cv.width=S;cv.height=S;
+    var ctx=cv.getContext("2d");
+    ctx.fillStyle=tc.bg;ctx.fillRect(0,0,S,S);
+    drawCorners(ctx,S,tc.accent);
+    ctx.textAlign="center";ctx.fillStyle=tc.text;
+    if(getBizName()){ctx.font="bold 44px Georgia,serif";ctx.fillText(getBizName(),S/2,390);drawDivider(ctx,S,415,tc.accent);}
+    drawCapText(ctx,post.cap,S,getBizName()?480:200,tc.text,tc.sub,34,36);
+    if(LOGO){
+      var li=new Image();
+      li.onload=function(){try{ctx.drawImage(li,(S-260)/2,78,260,260);}catch(e){}finish();};
+      li.onerror=finish;li.src=LOGO;
+    }else finish();
+    function finish(){var du="";try{du=cv.toDataURL("image/png");}catch(e){}allImgs.push({day:post.day,pid:post.pid,cap:post.cap,du:du});idx++;next();}
+  }
+  next();
+}
+
+function showBatchResults(posts,imgs){
+  var out=document.getElementById("batch-out");
+  out.innerHTML="";
+  var hdr=document.createElement("div");
+  hdr.style.cssText="font-size:13px;color:#a8d8c8;font-weight:bold;margin-bottom:6px";
+  hdr.textContent=imgs.length+" posts generated";
+  out.appendChild(hdr);
+  var sub=document.createElement("div");
+  sub.style.cssText="font-size:11px;color:#4a6a60;margin-bottom:14px;padding:8px 10px;background:rgba(45,92,82,.08);border-radius:8px;border-left:2px solid #2d5c52";
+  sub.textContent="Press and hold any image to save it to your photos.";
+  out.appendChild(sub);
+  var grid=document.createElement("div");
+  grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px";
+  imgs.forEach(function(img,i){
+    var p=getActivePillars().find(function(pp){return pp.id===posts[i].pid;});
+    var cell=document.createElement("div");
+    cell.style.cssText="border-radius:10px;overflow:hidden;background:rgba(255,255,255,.03);border:1px solid rgba(45,92,82,.2)";
+    if(img.du){
+      var im=document.createElement("img");
+      im.src=img.du;
+      im.style.cssText="width:100%;display:block";
+      cell.appendChild(im);
+    }
+    var info=document.createElement("div");
+    info.style.cssText="padding:6px 8px";
+    var day=document.createElement("div");
+    day.style.cssText="font-size:10px;color:#6abaa8;font-weight:bold;margin-bottom:2px";
+    day.textContent=img.day;
+    var pillar=document.createElement("div");
+    pillar.style.cssText="font-size:9px;color:#3a5a50;margin-bottom:4px";
+    pillar.textContent=p?p.label:"";
+    var cpb=document.createElement("button");
+    cpb.style.cssText="width:100%;padding:5px;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.3);border-radius:6px;color:#6abaa8;font-size:10px;font-family:Georgia,serif";
+    cpb.textContent="Copy Caption";
+    cpb.onclick=(function(c,b){return function(){copyText(c,b,"Copy Caption");};})(img.cap,cpb);
+    info.appendChild(day);info.appendChild(pillar);info.appendChild(cpb);
+    cell.appendChild(info);
+    grid.appendChild(cell);
+  });
+  out.appendChild(grid);
+}
+
+// CALENDAR
+function buildCalDays(){
+  var cd=document.getElementById("cal-days");
+  DAYS.forEach(function(day){
+    var div=document.createElement("div");div.className="cal-day";
+    var lbl=document.createElement("div");lbl.className="cal-label";lbl.textContent=day;
+    var s=document.createElement("select");s.id="cd-"+day;
+    var o0=document.createElement("option");o0.value="";o0.textContent="-- Rest day --";s.appendChild(o0);
+    getActivePillars().forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent=p.label;s.appendChild(o);});
+    s.onchange=function(){batchSel[day]=s.value;};
+    div.appendChild(lbl);div.appendChild(s);cd.appendChild(div);
+  });
+}
+
+function genFromCal(){
+  var chosen=DAYS.filter(function(d){return batchSel[d];});
+  if(!chosen.length){alert("Assign at least one pillar to a day!");return;}
+  go("gen");clrAll();
+  var ids=[];
+  chosen.forEach(function(d){if(ids.indexOf(batchSel[d])===-1)ids.push(batchSel[d]);});
+  ids.forEach(function(id){if(!sel[id])togglePillar(id);});
+  generate();
+}
+
+// SAVED
+function renderSaved(){
+  var sl=document.getElementById("saved-list");
+  if(!savedCaps.length){sl.innerHTML="<div style='text-align:center;color:#3a5a50;font-size:13px;padding:20px 0'>No saved captions yet.</div>";return;}
+  sl.innerHTML="";
+  savedCaps.forEach(function(item,idx){
+    var card=document.createElement("div");card.className="cap-card";
+    var inner=document.createElement("div");inner.className="cap-inner";
+    var pl=document.createElement("div");pl.className="cap-pillar";pl.textContent=item.lbl||"Saved";
+    var tx=document.createElement("p");tx.className="cap-text";tx.textContent=item.cap;
+    inner.appendChild(pl);inner.appendChild(tx);
+    var acts=document.createElement("div");acts.className="cap-actions";
+    var b1=document.createElement("button");b1.className="cap-btn";b1.textContent="Preview";b1.onclick=(function(c){return function(){openPreview(c,"saved");};})(item.cap);
+    var b2=document.createElement("button");b2.className="cap-btn";b2.textContent="Copy";b2.onclick=(function(c,b){return function(){copyText(c,b,"Copy");};})(item.cap,b2);
+    var b3=document.createElement("button");b3.className="cap-btn";b3.textContent="Delete";b3.style.color="#c87a7a";b3.onclick=(function(i){return function(){savedCaps.splice(i,1);persist("thp_saved",savedCaps);renderSaved();};})(idx);
+    acts.appendChild(b1);acts.appendChild(b2);acts.appendChild(b3);
+    card.appendChild(inner);card.appendChild(acts);sl.appendChild(card);
+  });
+}
+
+// TRACKER
+function addTrack(){
+  var title=prompt("Post title:");if(!title)return;
+  trackerItems.push({id:Date.now(),title:title,done:false,date:new Date().toLocaleDateString()});
+  persist("thp_tracker",trackerItems);renderTracker();
+}
+function clearDone(){trackerItems=trackerItems.filter(function(p){return !p.done;});persist("thp_tracker",trackerItems);renderTracker();}
+function renderTracker(){
+  var list=document.getElementById("track-list"),stats=document.getElementById("track-stats");
+  if(!list)return;
+  var done=trackerItems.filter(function(p){return p.done;}).length,total=trackerItems.length,pct=total>0?Math.round(done/total*100):0;
+  stats.innerHTML="<div style='flex:1;background:rgba(45,92,82,.15);border:1px solid rgba(45,92,82,.3);border-radius:10px;padding:10px;text-align:center'><div style='font-size:20px;font-weight:bold;color:#6abaa8'>"+done+"</div><div style='font-size:9px;color:#3a5a50'>POSTED</div></div><div style='flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px;text-align:center'><div style='font-size:20px;font-weight:bold;color:#7a8a80'>"+(total-done)+"</div><div style='font-size:9px;color:#3a5a50'>LEFT</div></div><div style='flex:1;background:rgba(200,168,74,.1);border:1px solid rgba(200,168,74,.25);border-radius:10px;padding:10px;text-align:center'><div style='font-size:20px;font-weight:bold;color:#c8a84a'>"+pct+"%</div><div style='font-size:9px;color:#3a5a50'>DONE</div></div>";
+  if(!trackerItems.length){list.innerHTML="<div style='text-align:center;color:#3a5a50;font-size:13px;padding:20px 0'>No posts tracked yet.</div>";return;}
+  list.innerHTML="";
+  var bar=document.createElement("div");bar.style.cssText="width:100%;height:5px;background:rgba(255,255,255,.05);border-radius:3px;margin-bottom:12px;overflow:hidden";
+  var fill=document.createElement("div");fill.style.cssText="height:100%;width:"+pct+"%;background:linear-gradient(90deg,#2d5c52,#3d7a6e);border-radius:3px";bar.appendChild(fill);list.appendChild(bar);
+  trackerItems.forEach(function(item,idx){
+    var card=document.createElement("div");card.style.cssText="display:flex;align-items:center;gap:10px;padding:11px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(45,92,82,"+(item.done?".1":".25")+");border-radius:12px;margin-bottom:7px;opacity:"+(item.done?".5":"1");
+    var chk=document.createElement("div");chk.style.cssText="width:24px;height:24px;border-radius:50%;border:2px solid "+(item.done?"#2d5c52":"rgba(255,255,255,.2)")+";background:"+(item.done?"#2d5c52":"transparent")+";display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:12px;color:#fff";chk.textContent=item.done?"v":"";
+    chk.onclick=(function(i){return function(){trackerItems[i].done=!trackerItems[i].done;persist("thp_tracker",trackerItems);renderTracker();};})(idx);
+    var info=document.createElement("div");info.style.cssText="flex:1;min-width:0";
+    var tit=document.createElement("div");tit.style.cssText="font-size:13px;color:"+(item.done?"#5a6a60":"#c8d8c8")+";text-decoration:"+(item.done?"line-through":"none");tit.textContent=item.title;
+    var dt=document.createElement("div");dt.style.cssText="font-size:10px;color:#3a5a50;margin-top:1px";dt.textContent=item.date;
+    info.appendChild(tit);info.appendChild(dt);
+    var del=document.createElement("button");del.style.cssText="background:none;border:none;color:#5a3a3a;font-size:16px;padding:4px";del.textContent="x";
+    del.onclick=(function(i){return function(){trackerItems.splice(i,1);persist("thp_tracker",trackerItems);renderTracker();};})(idx);
+    card.appendChild(chk);card.appendChild(info);card.appendChild(del);list.appendChild(card);
+  });
+}
+
+// PREVIEW
+function openPreview(cap,pillarId){
+  curCap=cap;curPillarId=pillarId||"";
+  document.getElementById("edit-txt").value=cap;
+  document.getElementById("img-container").style.display="none";
+  document.getElementById("main-screen").style.display="none";
+  document.getElementById("preview-screen").style.display="block";
+  window.scrollTo(0,0);
+  // Show tip for current platform
+  var tip=document.getElementById("platform-tip");
+  if(tip)tip.textContent=PLATFORM_TIPS[curPlatform]||"";
+  renderPreview();
+}
+function backToMain(){
+  document.getElementById("preview-screen").style.display="none";
+  document.getElementById("main-screen").style.display="block";
+  window.scrollTo(0,0);
+}
+
+function getTxtColor(){return txtColor||(bgMode==="solid"?THEMES[curTheme].text:(dimCol==="dark"?"#ffffff":"#1e4a40"));}
+function getSubColor(){return bgMode==="solid"?THEMES[curTheme].sub:(dimCol==="dark"?"rgba(255,255,255,.75)":"#4a7a6e");}
+function getAccColor(){return bgMode==="solid"?THEMES[curTheme].accent:"#c8a84a";}
+
+var PLATFORM_TIPS={
+  ig:"Instagram: captions up to 2,200 chars. Hook in the first line. Hashtags at the end. Square (1080x1080) or portrait works best.",
+  tt:"TikTok: keep captions short and punchy -- 1-3 lines max. Lead with a hook. Use 3-5 hashtags. Vertical video format preferred but square works."
+};
+
+function setPlatform(p){
+  curPlatform=p;
+  document.getElementById("plt-ig").className="tmb"+(p==="ig"?" on":"");
+  document.getElementById("plt-tt").className="tmb"+(p==="tt"?" on":"");
+  var tip=document.getElementById("platform-tip");
+  if(tip)tip.textContent=PLATFORM_TIPS[p]||"";
+  // Adjust caption if switching to TikTok - trim to first 2 sentences
+  if(p==="tt"){
+    var txt=document.getElementById("edit-txt").value||"";
+    var sentences=txt.replace(/([.!?]) /g,"$1|").split("|").filter(Boolean);
+    if(sentences.length>2){
+      var trimmed=sentences.slice(0,2).join(" ");
+      document.getElementById("edit-txt").value=trimmed;
+      curCap=trimmed;
+    }
+  }
+  document.getElementById("img-container").style.display="none";
+  renderPreview();
+}
+
+function updatePhotoControlLabels(){
+  var pv=document.getElementById("posxy-val"), zv=document.getElementById("bgz-val");
+  if(pv)pv.textContent=bgPosX+" / "+bgPosY;
+  if(zv)zv.textContent=bgZoom;
+}
+function onBgPos(){
+  var x=document.getElementById("bgx-sl"), y=document.getElementById("bgy-sl");
+  var p=document.getElementById("post-preview");
+  var ranges=getPhotoRanges((p&&p.clientWidth)||480,(p&&p.clientHeight)||380);
+  bgPosX=(x&&!x.disabled)?parseInt(x.value,10):50;
+  bgPosY=(y&&!y.disabled)?parseInt(y.value,10):35;
+  if(ranges.xRange===0) bgPosX=50;
+  if(ranges.yRange===0) bgPosY=50;
+  updatePhotoControlLabels();
+  var box=document.getElementById("img-container"); if(box)box.style.display="none";
+  renderPreview();
+}
+function onBgZoom(){
+  var z=document.getElementById("bgz-sl");
+  bgZoom=z?parseInt(z.value,10):100;
+  updatePhotoControlLabels();
+  var box=document.getElementById("img-container"); if(box)box.style.display="none";
+  renderPreview();
+}
+function syncPhotoControls(){
+  var x=document.getElementById("bgx-sl"), y=document.getElementById("bgy-sl"), z=document.getElementById("bgz-sl");
+  if(x)x.value=bgPosX; if(y)y.value=bgPosY; if(z)z.value=bgZoom;
+  updatePhotoControlLabels();
+}
+function nudgePhoto(dx,dy){
+  var p=document.getElementById("post-preview");
+  var ranges=getPhotoRanges((p&&p.clientWidth)||480,(p&&p.clientHeight)||380);
+  if(dx&&ranges.xRange===0){ unlockAxis('x'); return; }
+  if(dy&&ranges.yRange===0){ unlockAxis('y'); return; }
+  bgPosX=Math.max(0,Math.min(100,bgPosX+dx));
+  bgPosY=Math.max(0,Math.min(100,bgPosY+dy));
+  syncPhotoControls();
+  var box=document.getElementById("img-container"); if(box)box.style.display="none";
+  renderPreview();
+}
+function resetPhotoView(){
+  bgPosX=50; bgPosY=50; bgZoom=100;
+  syncPhotoControls();
+  var box=document.getElementById("img-container"); if(box)box.style.display="none";
+  renderPreview();
+}
+function drawCoverPhoto(ctx,img,S){
+  var base=Math.max(S/img.width,S/img.height);
+  var scale=base*(bgZoom/100);
+  var w=img.width*scale,h=img.height*scale;
+  var extraX=Math.max(0,w-S), extraY=Math.max(0,h-S);
+  var x=-(extraX*(bgPosX/100));
+  var y=-(extraY*(bgPosY/100));
+  ctx.drawImage(img,x,y,w,h);
+}
+
+var previewPhotoMeta=null;
+function getPhotoRanges(cw,ch){
+  if(!photoURL||!previewPhotoMeta||!previewPhotoMeta.w||!previewPhotoMeta.h||!cw||!ch){
+    return {xRange:0,yRange:0,w:0,h:0};
+  }
+  var base=Math.max(cw/previewPhotoMeta.w,ch/previewPhotoMeta.h);
+  var scale=base*(bgZoom/100);
+  var w=Math.round(previewPhotoMeta.w*scale), h=Math.round(previewPhotoMeta.h*scale);
+  return {xRange:Math.max(0,w-cw), yRange:Math.max(0,h-ch), w:w, h:h};
+}
+function updatePhotoAxisUI(cw,ch){
+  var xsl=document.getElementById("bgx-sl"), ysl=document.getElementById("bgy-sl");
+  var xnote=document.getElementById("x-range-note"), ynote=document.getElementById("y-range-note");
+  var xunlock=document.getElementById("x-unlock-btn"), yunlock=document.getElementById("y-unlock-btn");
+  var note=document.getElementById("photo-axis-note");
+  var xr=0, yr=0;
+  if(bgMode==="photo"&&photoURL&&previewPhotoMeta){
+    var ranges=getPhotoRanges(cw||480,ch||380); xr=ranges.xRange; yr=ranges.yRange;
+  }
+  if(xnote)xnote.textContent=xr>0?"Horizontal move: available":"Horizontal move: locked until you zoom in more";
+  if(ynote)ynote.textContent=yr>0?"Vertical move: available":"Vertical move: locked until you zoom in more";
+  if(xunlock)xunlock.style.display=xr>0?"none":"inline";
+  if(yunlock)yunlock.style.display=yr>0?"none":"inline";
+  if(note)note.textContent=(xr>0&&yr>0)?"Both directions are available.":(xr===0&&yr===0?"Zoom in a little more to unlock both directions.":(xr===0?"This photo is currently too narrow to move left/right. Zoom in to unlock it.":"This photo is currently too short to move up/down. Zoom in to unlock it."));
+  setPhotoAxisEnabled('x', xr>0);
+  setPhotoAxisEnabled('y', yr>0);
+}
+function setPhotoAxisEnabled(axis, enabled){
+  var ids=axis==='x'?["bgx-sl","move-left-btn","move-right-btn"]:["bgy-sl","move-up-btn","move-down-btn","move-up-more-btn","move-down-more-btn"];
+  ids.forEach(function(id){
+    var el=document.getElementById(id); if(!el) return; el.disabled=!enabled;
+    if(!enabled){ el.style.opacity='0.4'; el.style.cursor='not-allowed'; }
+    else { el.style.opacity='1'; el.style.cursor='pointer'; }
+  });
+}
+function unlockAxis(axis){
+  var target=axis==='x'?120:120;
+  if(bgZoom<target){ bgZoom=target; }
+  else { bgZoom=Math.min(220,bgZoom+15); }
+  var z=document.getElementById('bgz-sl'); if(z) z.value=bgZoom;
+  updatePhotoControlLabels();
+  renderPreview();
+}
+function ensurePreviewPhotoMeta(cb){
+  if(previewPhotoMeta&&previewPhotoMeta.src===photoURL&&previewPhotoMeta.w&&previewPhotoMeta.h){
+    cb(previewPhotoMeta);
+    return;
+  }
+  if(!photoURL){ cb(null); return; }
+  var im=new Image();
+  im.onload=function(){
+    previewPhotoMeta={src:photoURL,w:im.naturalWidth||im.width,h:im.naturalHeight||im.height};
+    cb(previewPhotoMeta);
+  };
+  im.onerror=function(){ cb(null); };
+  im.src=photoURL;
+}
+
+function buildPreviewPhotoLayer(meta,cw,ch){
+  if(!meta||!cw||!ch){ return ""; }
+  var base=Math.max(cw/meta.w,ch/meta.h);
+  var scale=base*(bgZoom/100);
+  var w=Math.round(meta.w*scale), h=Math.round(meta.h*scale);
+  var extraX=Math.max(0,w-cw), extraY=Math.max(0,h-ch);
+  var x=Math.round(-(extraX*(bgPosX/100)));
+  var y=Math.round(-(extraY*(bgPosY/100)));
+  return "<img src='"+photoURL+"' style='position:absolute;left:"+x+"px;top:"+y+"px;width:"+w+"px;height:"+h+"px;max-width:none;max-height:none;z-index:0'>"+
+    "<div style='position:absolute;inset:0;background:"+(dimCol==="dark"?"rgba(0,0,0,"+dimAmt+")":"rgba(255,255,255,"+dimAmt+")")+";z-index:1'></div>";
+}
+
+function renderPreview(){
+  var p=document.getElementById("post-preview");if(!p)return;
+  var cw=p.clientWidth||480, chPreview=p.clientHeight||380;
+  var tc=getTxtColor(),sc=getSubColor(),ac=getAccColor();
+  var baseCap=(document.getElementById("edit-txt")&&document.getElementById("edit-txt").value?document.getElementById("edit-txt").value:curCap);
+  curCap=baseCap;
+  var capText=baseCap+(curCTA?("\n\n"+CTA[curCTA]):"");
+  var lines=capText.split("\n").filter(function(l){return l.trim();});
+  var fs=txtSize+"px",ta=curLayout==="left"?"text-align:left;":"text-align:center;";
+  var sh=bgMode==="photo"?"0 1px 4px rgba(0,0,0,.45)":"none";
+  var ch=lines.map(function(s,i){return "<p style='margin:0 0 9px;font-size:"+fs+";color:"+tc+";font-family:"+curFont+";text-shadow:"+sh+";"+ta+"'>"+s+"</p>";}).join("");
+  var th=showTags&&HASHTAGS.length?"<div style='margin-top:12px;font-size:10px;color:"+sc+";line-height:2;font-family:"+curFont+";text-align:center'>"+HASHTAGS.map(function(h){return "<div>"+h+"</div>";}).join("")+"</div>":"";
+  var ac2="linear-gradient(90deg,transparent,"+ac+",transparent)";
+  var corners="<div style='position:absolute;top:12px;left:12px;width:18px;height:18px;border-top:1.5px solid "+ac+";border-left:1.5px solid "+ac+";opacity:.7;z-index:3'></div><div style='position:absolute;top:12px;right:12px;width:18px;height:18px;border-top:1.5px solid "+ac+";border-right:1.5px solid "+ac+";opacity:.7;z-index:3'></div><div style='position:absolute;bottom:12px;left:12px;width:18px;height:18px;border-bottom:1.5px solid "+ac+";border-left:1.5px solid "+ac+";opacity:.7;z-index:3'></div><div style='position:absolute;bottom:12px;right:12px;width:18px;height:18px;border-bottom:1.5px solid "+ac+";border-right:1.5px solid "+ac+";opacity:.7;z-index:3'></div>";
+  var logoHTML=LOGO?"<img src='"+LOGO+"' style='width:"+logoSize+"px;height:"+logoSize+"px;object-fit:contain;margin-bottom:6px;position:relative;z-index:3'>":"";
+  var nameHTML=getBizName()?"<div style='font-size:16px;font-weight:bold;color:"+tc+";margin-bottom:3px;font-family:"+curFont+";text-shadow:"+sh+";position:relative;z-index:3'>"+getBizName()+"</div>":"";
+  var wm=getHandle()?"<div style='position:absolute;bottom:8px;font-size:8px;letter-spacing:.2em;color:"+sc+";opacity:.4;text-transform:uppercase;font-family:"+curFont+";z-index:3'>"+getHandle()+"</div>":"";
+  var photoLayerHTML="";
+  p.style.backgroundImage="";
+  if(bgMode==="photo"&&photoURL){
+    p.style.background="#2a2a2a";
+    if(previewPhotoMeta&&previewPhotoMeta.src===photoURL){
+      updatePhotoAxisUI(cw,chPreview);
+      photoLayerHTML=buildPreviewPhotoLayer(previewPhotoMeta,cw,chPreview);
+    }else{
+      updatePhotoAxisUI(cw,chPreview);
+      ensurePreviewPhotoMeta(function(meta){
+        if(meta){ renderPreview(); }
+      });
+    }
+  }else if(bgMode==="photo"){
+    p.style.background="#2a2a2a";
+    updatePhotoAxisUI(cw,chPreview);
+  }else{
+    p.style.background=THEMES[curTheme].bg;
+    updatePhotoAxisUI(cw,chPreview);
+  }
+  p.style.justifyContent=curLayout==="bottom"?"flex-end":"center";
+  p.innerHTML=photoLayerHTML+corners+"<div style='position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;text-align:center;width:100%'>"+logoHTML+nameHTML+(getBizName()?"<div style='width:54px;height:1.5px;background:"+ac2+";margin:8px auto 12px;position:relative;z-index:3'></div>":"")+"<div style='max-width:320px;width:100%;position:relative;z-index:3'>"+ch+"</div>"+th+"</div>"+wm;
+}
+
+function setBgMode(m){bgMode=m;document.getElementById("bg-solid").className="tmb"+(m==="solid"?" on":"");document.getElementById("bg-photo").className="tmb"+(m==="photo"?" on":"");document.getElementById("solid-opts").style.display=m==="solid"?"flex":"none";document.getElementById("photo-opts").style.display=m==="photo"?"block":"none";document.getElementById("img-container").style.display="none";updatePhotoControlLabels();renderPreview();}
+function setTheme(t){curTheme=t;["cream","sage","dusk","blush","sky","lavender","sand","forest","rose"].forEach(function(id){var e=document.getElementById("th-"+id);if(e)e.className="tmb"+(id===t?" on":"");});document.getElementById("img-container").style.display="none";renderPreview();}
+function onDim(){dimAmt=document.getElementById("dim-sl").value/100;document.getElementById("dim-val").textContent=document.getElementById("dim-sl").value;document.getElementById("img-container").style.display="none";renderPreview();}
+function setDimCol(c){dimCol=c;document.getElementById("dim-dark").className="tmb"+(c==="dark"?" on":"");document.getElementById("dim-light").className="tmb"+(c==="light"?" on":"");document.getElementById("img-container").style.display="none";renderPreview();}
+function setTxtColor(v){txtColor=(v==="auto"?null:v);if(v!=="auto")document.getElementById("txt-color").value=v;document.getElementById("img-container").style.display="none";renderPreview();}
+function onLogoSize(){logoSize=parseInt(document.getElementById("lsz-sl").value);document.getElementById("lsz-val").textContent=logoSize;document.getElementById("img-container").style.display="none";renderPreview();}
+function setFont(f){curFont=f;var map={"Georgia,serif":"georgia","Palatino,serif":"palatino","Trebuchet MS,sans-serif":"modern","Courier New,monospace":"courier"};["georgia","palatino","modern","courier"].forEach(function(id){var e=document.getElementById("f-"+id);if(e)e.className="fnt-btn"+(map[f]===id?" on":"");});document.getElementById("img-container").style.display="none";renderPreview();}
+function onTxtSize(){txtSize=parseInt(document.getElementById("tsz-sl").value);document.getElementById("tsz-val").textContent=txtSize;document.getElementById("img-container").style.display="none";renderPreview();}
+function setLayout(l){curLayout=l;tmb(["lay-center","lay-left","lay-bottom"],"lay-"+l);document.getElementById("img-container").style.display="none";renderPreview();}
+function setCTA(c){curCTA=c;tmb(["cta-none","cta-save","cta-tag","cta-follow","cta-comment"],"cta-"+(c||"none"));document.getElementById("img-container").style.display="none";renderPreview();}
+function toggleTags(){showTags=!showTags;document.getElementById("tog").style.background=showTags?"#2d5c52":"#444";document.getElementById("knob").style.left=showTags?"19px":"3px";document.getElementById("img-container").style.display="none";renderPreview();}
+function onEditTxt(){curCap=document.getElementById("edit-txt").value;document.getElementById("img-container").style.display="none";renderPreview();}
+
+function doRefresh(){
+  var newCap="";
+  if(curPillarId&&CAPS[curPillarId]){
+    var pool=CAPS[curPillarId],current=curCap,attempts=0;
+    do{newCap=pool[Math.floor(Math.random()*pool.length)];attempts++;}while(newCap===current&&pool.length>1&&attempts<10);
+  }else{
+    var allP=Object.keys(CAPS),pid=allP[Math.floor(Math.random()*allP.length)];
+    newCap=CAPS[pid][Math.floor(Math.random()*CAPS[pid].length)];
+  }
+  curCap=newCap;document.getElementById("edit-txt").value=curCap;document.getElementById("img-container").style.display="none";renderPreview();
+}
+function doCopyBtn(){copyText(curCap,document.getElementById("copy-btn"),"Copy");}
+function doSave(){saveCaption(curCap,curPillarId.toUpperCase());var b=document.getElementById("save-btn");b.textContent="Saved!";setTimeout(function(){b.textContent="Save";},2000);}
+
+function removePhoto(){photoURL=null;previewPhotoMeta=null;bgPosX=50;bgPosY=50;bgZoom=100;var x=document.getElementById("bgx-sl"),y=document.getElementById("bgy-sl"),z=document.getElementById("bgz-sl");if(x)x.value=bgPosX;if(y)y.value=bgPosY;if(z)z.value=bgZoom;updatePhotoControlLabels();document.getElementById("photo-lbl").textContent="Tap to upload a photo";document.getElementById("photo-inp").value="";document.getElementById("remove-photo-btn").style.display="none";document.getElementById("img-container").style.display="none";renderPreview();}
+
+// DOWNLOAD
+function drawCorners(ctx,S,ac){
+  var bO=28,bZ=38;ctx.strokeStyle=ac;ctx.lineWidth=3;ctx.globalAlpha=.7;
+  [[bO,bO+bZ,bO,bO,bO+bZ,bO],[S-bO-bZ,bO,S-bO,bO,S-bO,bO+bZ],[bO,S-bO-bZ,bO,S-bO,bO+bZ,S-bO],[S-bO-bZ,S-bO,S-bO,S-bO,S-bO,S-bO-bZ]].forEach(function(pts){ctx.beginPath();ctx.moveTo(pts[0],pts[1]);ctx.lineTo(pts[2],pts[3]);ctx.lineTo(pts[4],pts[5]);ctx.stroke();});
+  ctx.globalAlpha=1;
+}
+function drawDivider(ctx,S,y,ac){
+  var g=ctx.createLinearGradient(S/2-90,0,S/2+90,0);g.addColorStop(0,"transparent");g.addColorStop(.5,ac);g.addColorStop(1,"transparent");
+  ctx.fillStyle=g;ctx.fillRect(S/2-90,y,180,3);
+}
+function drawCapText(ctx,cap,S,startY,tc,sc,fs,fsb){
+  ctx.textAlign="center";ctx.fillStyle=tc;
+  var mW=820,y=startY;
+  function wrapLine(txt,fnt){ctx.font=fnt;var ws=txt.split(" "),ln="",ls=[];ws.forEach(function(w){var t=ln?ln+" "+w:w;if(ctx.measureText(t).width>mW&&ln){ls.push(ln);ln=w;}else ln=t;});if(ln)ls.push(ln);return ls;}
+  cap.split("\n").filter(function(l){return l.trim();}).forEach(function(s,i){
+    if(y>=S-140)return;
+    var f=(i===1?"bold "+fsb+"px ":fs+"px ")+"Georgia,serif";
+    var lh=i===1?fsb+16:fs+15;
+    wrapLine(s,f).forEach(function(wl){if(y<S-140){ctx.font=f;ctx.fillText(wl,S/2,y);y+=lh;}});
+    y+=8;
+  });
+  if(HASHTAGS.length&&showTags&&y<S-80){
+    ctx.font="27px Georgia,serif";ctx.fillStyle=sc;ctx.globalAlpha=.8;
+    wrapLine(HASHTAGS.join("   "),"27px Georgia,serif").forEach(function(tl){if(y<S-80){ctx.fillText(tl,S/2,y+18);y+=43;}});
+    ctx.globalAlpha=1;
+  }
+  if(getHandle()){ctx.font="21px Georgia,serif";ctx.fillStyle=sc;ctx.globalAlpha=.35;ctx.fillText(getHandle(),S/2,S-30);ctx.globalAlpha=1;}
+}
+
+function setRenderedOutput(dataURL){
+  lastRenderedDataURL=dataURL||"";
+  var out=document.getElementById("out-img");
+  var box=document.getElementById("img-container");
+  var saveLink=document.getElementById("save-image-link");
+  var openLink=document.getElementById("open-image-link");
+  if(out)out.src=lastRenderedDataURL||"";
+  if(box)box.style.display=lastRenderedDataURL?"block":"none";
+  if(saveLink){
+    saveLink.href=lastRenderedDataURL||"#";
+    saveLink.download="healing-path-post-"+Date.now()+".png";
+  }
+  if(openLink)openLink.href=lastRenderedDataURL||"#";
+}
+function tryAutoDownload(dataURL){
+  if(!dataURL)return false;
+  try{
+    var a=document.createElement("a");
+    a.href=dataURL;
+    a.download="healing-path-post-"+Date.now()+".png";
+    a.rel="noopener";
+    a.style.display="none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){try{document.body.removeChild(a);}catch(e){}},300);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function loadImageForExport(src, timeoutMs, done){
+  if(!src){ done(null); return; }
+  var img = new Image();
+  var finished = false;
+  var timer = setTimeout(function(){ finish(null); }, timeoutMs || 3000);
+  function finish(result){
+    if(finished)return;
+    finished=true;
+    clearTimeout(timer);
+    done(result);
+  }
+  img.onload=function(){ finish(img); };
+  img.onerror=function(){ finish(null); };
+  try{ img.decoding='sync'; }catch(e){}
+  try{ img.src = src; }catch(e){ finish(null); }
+}
+
+function doDownload(){
+  var btn=document.getElementById("dl-btn"),status=document.getElementById("dl-status");
+  if(!status)return;
+  if(btn){btn.textContent="Building...";btn.disabled=true;}
+  status.textContent="Rendering image...";
+
+  var finished=false;
+  function resetBtn(){
+    if(btn){btn.textContent="Download Post (1080x1080)";btn.disabled=false;}
+  }
+  function finalizeError(msg){
+    if(finished)return;
+    finished=true;
+    status.textContent=msg||"Could not create the image in this browser.";
+    resetBtn();
+  }
+  function finalizeSuccess(dataURL){
+    if(finished)return;
+    finished=true;
+    try{
+      setRenderedOutput(dataURL);
+      var started=tryAutoDownload(dataURL);
+      status.textContent=started
+        ? "Image is ready below. If it did not save automatically, click Save Image or Open Image."
+        : "Image is ready below. Click Save Image, Open Image, or right-click the image.";
+    }catch(e){
+      status.textContent="Image rendered, but this browser blocked the auto-save action. Use the image below.";
+    }
+    resetBtn();
+  }
+
+  var hardTimeout=setTimeout(function(){
+    finalizeError("Rendering timed out. Try a solid background, shorter caption, or refresh the page.");
+  },10000);
+
+  try{
+    var S=1080,cv=document.createElement("canvas");
+    cv.width=S;cv.height=S;
+    var ctx=cv.getContext("2d");
+    if(!ctx){ clearTimeout(hardTimeout); finalizeError("Canvas is not available in this browser."); return; }
+
+    function exportCanvas(){
+      try{
+        var dataURL=cv.toDataURL("image/png");
+        clearTimeout(hardTimeout);
+        finalizeSuccess(dataURL);
+      }catch(e1){
+        try{
+          if(cv.toBlob){
+            cv.toBlob(function(blob){
+              if(!blob){ clearTimeout(hardTimeout); finalizeError("Could not export the image. Try a solid background or smaller photo."); return; }
+              try{
+                var url=URL.createObjectURL(blob);
+                clearTimeout(hardTimeout);
+                finalizeSuccess(url);
+                setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 120000);
+              }catch(e2){
+                clearTimeout(hardTimeout);
+                finalizeError("Could not export the image. Try a solid background or smaller photo.");
+              }
+            },"image/png");
+          }else{
+            clearTimeout(hardTimeout);
+            finalizeError("Could not export the image. Try a solid background or smaller photo.");
+          }
+        }catch(e3){
+          clearTimeout(hardTimeout);
+          finalizeError("Could not export the image. Try a solid background or smaller photo.");
+        }
+      }
+    }
+
+    function drawAll(bgImg, logoImg){
+      var tc=getTxtColor(),sc=getSubColor(),ac=getAccColor();
+      try{
+        if(bgMode==="photo" && bgImg){
+          try{
+            drawCoverPhoto(ctx,bgImg,S);
+            ctx.fillStyle=dimCol==="dark" ? "rgba(0,0,0,"+dimAmt+")" : "rgba(255,255,255,"+Math.min(dimAmt,.75)+")";
+            ctx.fillRect(0,0,S,S);
+          }catch(eBg){
+            ctx.fillStyle="#2a2a2a";
+            ctx.fillRect(0,0,S,S);
+          }
+        }else{
+          ctx.fillStyle=bgMode==="solid" ? THEMES[curTheme].bg : "#2a2a2a";
+          ctx.fillRect(0,0,S,S);
+        }
+
+        try{ drawCorners(ctx,S,ac); }catch(e){}
+
+        if(logoImg){
+          try{ ctx.drawImage(logoImg,(S-260)/2,78,260,260); }catch(e){}
+        }
+
+        if(getBizName()){
+          try{
+            ctx.textAlign="center";
+            ctx.fillStyle=tc;
+            ctx.font="bold 44px Georgia,serif";
+            ctx.fillText(String(getBizName()),S/2,390);
+            drawDivider(ctx,S,415,ac);
+          }catch(e){}
+        }
+
+        var capBase = getCurrentCaptionText() || curCap || "";
+        curCap = capBase;
+        var capText = String(capBase) + (curCTA && CTA[curCTA] ? ("\n\n"+CTA[curCTA]) : "");
+        try{ drawCapText(ctx,capText,S,getBizName()?480:200,tc,sc,34,36); }catch(eTxt){
+          try{
+            ctx.textAlign="center";
+            ctx.fillStyle=tc;
+            ctx.font="34px Georgia,serif";
+            var fallback = String(capBase).slice(0,240);
+            var parts = fallback.replace(/\s+/g,' ').match(/.{1,38}(\s|$)/g) || [fallback];
+            var y = getBizName()?480:220;
+            for(var i=0;i<parts.length && y<S-140;i++){
+              ctx.fillText(parts[i].trim(), S/2, y);
+              y += 50;
+            }
+          }catch(eTxt2){}
+        }
+
+        exportCanvas();
+      }catch(e){
+        clearTimeout(hardTimeout);
+        finalizeError("Could not render the post. Try a solid background or refresh the page.");
+      }
+    }
+
+    loadImageForExport(bgMode==="photo" ? photoURL : null, 3500, function(bgImg){
+      loadImageForExport(LOGO || null, 2500, function(logoImg){
+        drawAll(bgImg, logoImg);
+      });
+    });
+  }catch(e){
+    clearTimeout(hardTimeout);
+    finalizeError("Download failed. Try refreshing the page, then export again.");
+  }
+}
+
+function applyPastedImage(dataURL,mode){
+  if(mode==="photo"){
+    photoURL=dataURL;
+    bgMode="photo";
+    bgPosX=50; bgPosY=50; bgZoom=100;
+    var xsl=document.getElementById("bgx-sl"), ysl=document.getElementById("bgy-sl"), zsl=document.getElementById("bgz-sl");
+    if(xsl)xsl.value=bgPosX; if(ysl)ysl.value=bgPosY; if(zsl)zsl.value=bgZoom;
+    updatePhotoControlLabels();
+    var bgSolid=document.getElementById("bg-solid"),bgPhoto=document.getElementById("bg-photo"),po=document.getElementById("photo-opts"),so=document.getElementById("solid-opts");
+    if(bgSolid)bgSolid.className="tmb";
+    if(bgPhoto)bgPhoto.className="tmb on";
+    if(po)po.style.display="block";
+    if(so)so.style.display="none";
+    var photoLbl=document.getElementById("photo-lbl");if(photoLbl)photoLbl.textContent="Pasted image";
+    var removeBtn=document.getElementById("remove-photo-btn");if(removeBtn)removeBtn.style.display="block";
+    document.getElementById("img-container").style.display="none";
+    renderPreview();
+    return;
+  }
+  LOGO=dataURL;
+  settings.logo=LOGO;
+  updateProfileUI();
+}
+function pastePhoto(){
+  var ps=document.getElementById("dl-status");
+  if(navigator.clipboard&&navigator.clipboard.read){
+    ps.textContent="Reading clipboard...";
+    navigator.clipboard.read().then(function(items){
+      for(var i=0;i<items.length;i++){
+        var item=items[i];
+        var imgType=item.types.find(function(t){return t.indexOf("image/")===0;});
+        if(imgType){
+          item.getType(imgType).then(function(blob){
+            var r=new FileReader();
+            r.onload=function(e){applyPastedImage(e.target.result,"photo");ps.textContent="Photo pasted!";setTimeout(function(){ps.textContent="";},2500);};
+            r.readAsDataURL(blob);
+          });
+          return;
+        }
+      }
+      ps.textContent="No image found in clipboard";
+      setTimeout(function(){ps.textContent="";},2500);
+    }).catch(function(){ps.textContent="Clipboard access denied";setTimeout(function(){ps.textContent="";},2500);});
+  }else{
+    ps.textContent="Clipboard paste not supported here";
+    setTimeout(function(){ps.textContent="";},2500);
+  }
+}
+
+// PASTE LOGO
+function pasteLogo() {
+  var ps = document.getElementById("paste-status");
+  if (navigator.clipboard && navigator.clipboard.read) {
+    ps.textContent = "Reading clipboard...";
+    ps.style.color = "#6abaa8";
+    navigator.clipboard.read().then(function(items) {
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var imgType = item.types.find(function(t) { return t.startsWith("image/"); });
+        if (imgType) {
+          item.getType(imgType).then(function(blob) {
+            var r = new FileReader();
+            r.onload = function(e) {
+              LOGO = e.target.result;
+              settings.logo = LOGO;
+              updateProfileUI();
+              ps.textContent = "Logo pasted!";
+              ps.style.color = "#6abaa8";
+              setTimeout(function() { ps.textContent = ""; }, 3000);
+            };
+            r.readAsDataURL(blob);
+          });
+          return;
+        }
+      }
+      ps.textContent = "No image found -- copy an image first";
+      ps.style.color = "#c87a7a";
+      setTimeout(function() { ps.textContent = ""; }, 3000);
+    }).catch(function() {
+      ps.textContent = "Clipboard access denied -- use upload instead";
+      ps.style.color = "#c87a7a";
+      setTimeout(function() { ps.textContent = ""; }, 3000);
+    });
+  } else {
+    ps.textContent = "Try long-pressing the upload area or use file upload";
+    ps.style.color = "#c8a84a";
+    setTimeout(function() { ps.textContent = ""; }, 3000);
+  }
+}
+
+// Global paste listener -- paste photo in preview, logo elsewhere
+document.addEventListener("paste", function(e) {
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      var blob = items[i].getAsFile();
+      var r = new FileReader();
+      r.onload = function(ev) {
+        var inPreview=document.getElementById("preview-screen").style.display==="block";
+        applyPastedImage(ev.target.result,inPreview?"photo":"logo");
+        var msgEl=inPreview?document.getElementById("dl-status"):document.getElementById("paste-status");
+        if (msgEl) { msgEl.textContent = inPreview?"Photo pasted!":"Logo pasted!"; msgEl.style.color = "#6abaa8"; setTimeout(function() { msgEl.textContent = ""; }, 3000); }
+      };
+      r.readAsDataURL(blob);
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
+// CUSTOM MODAL
+function getCustomTemplates(){
+  if(activeProfile==="personal"){
+    return [
+      "Good morning. Hope today is kind to you.",
+      "Just checking in to say I love you and I am proud of you.",
+      "You have been on my mind today. Hope you are doing okay.",
+      "I know today may feel heavy. Be gentle with yourself.",
+      "You did a great job today and I hope you know that."
+    ];
+  }
+  return [
+    "Sale going on now! DM us to order.",
+    "New post dropping soon -- stay tuned!",
+    "Thank you for your support. We appreciate every one of you.",
+    "Follow for daily content on healing, growth, and real life.",
+    "Comment below -- what topic do you want to see next?"
+  ];
+}
+function openCustomModal(){
+  document.getElementById("custom-modal").style.display="flex";
+  var ct=document.getElementById("modal-templates");
+  ct.innerHTML="";
+  getCustomTemplates().forEach(function(t){
+    var b=document.createElement("button");
+    b.style.cssText="width:100%;padding:9px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(45,92,82,.2);border-radius:10px;color:#7a9a90;font-size:12px;text-align:left;font-family:Georgia,serif";
+    b.textContent=t;b.onclick=function(){document.getElementById("custom-modal-txt").value=t;};
+    ct.appendChild(b);
+  });
+  var s=document.getElementById("custom-rewrite-status");if(s)s.textContent="";
+  setTimeout(function(){document.getElementById("custom-modal-txt").focus();},100);
+}
+function closeCustomModal(){document.getElementById("custom-modal").style.display="none";}
+function clearCustomCaption(){
+  var el=document.getElementById("custom-modal-txt");if(el)el.value="";
+  var s=document.getElementById("custom-rewrite-status");if(s)s.textContent="";
+}
+function smartProofreadText(txt){
+  txt=(txt||"").replace(/\r/g," ").replace(/\n+/g," ").replace(/\s+/g," ").trim();
+  if(!txt)return "";
+
+  var directPatterns=[
+    {re:/^helli\s+giye\s+whats\s+up\s+see\s+today\s+birthday\s+happy[.!?]*$/i,out:"Hey girl, what's up? Just wanted to wish you a happy birthday today!"},
+    {re:/^hellp?s?\.?\s*people[.!?]*$/i,out:"Helps people."},
+    {re:/^happy\s+birthday\s+today[.!?]*$/i,out:"Happy birthday! Hope you have an amazing day today."}
+  ];
+  for(var d=0;d<directPatterns.length;d++){
+    if(directPatterns[d].re.test(txt)) return directPatterns[d].out;
+  }
+
+  var replacements=[
+    [/(^|\s)helli(\s|$)/gi," hey "],
+    [/(^|\s)helllo(\s|$)/gi," hello "],
+    [/(^|\s)hellps(\s|$)/gi," helps "],
+    [/(^|\s)helpps(\s|$)/gi," helps "],
+    [/(^|\s)giye(\s|$)/gi," girl "],
+    [/(^|\s)gurl(\s|$)/gi," girl "],
+    [/(^|\s)whats(\s|$)/gi," what's "],
+    [/(^|\s)wats(\s|$)/gi," what's "],
+    [/(^|\s)u(\s|$)/gi," you "],
+    [/(^|\s)ur(\s|$)/gi," your "],
+    [/(^|\s)r(\s|$)/gi," are "],
+    [/(^|\s)bday(\s|$)/gi," birthday "],
+    [/(^|\s)bdayyy(\s|$)/gi," birthday "],
+    [/(^|\s)hpy(\s|$)/gi," happy "],
+    [/(^|\s)peole(\s|$)/gi," people "],
+    [/(^|\s)teh(\s|$)/gi," the "],
+    [/(^|\s)dont(\s|$)/gi," don't "],
+    [/(^|\s)cant(\s|$)/gi," can't "],
+    [/(^|\s)wont(\s|$)/gi," won't "],
+    [/(^|\s)im(\s|$)/gi," I'm "],
+    [/(^|\s)ive(\s|$)/gi," I've "],
+    [/(^|\s)ill(\s|$)/gi," I'll "],
+    [/helli/gi,"hey"],
+    [/helly/gi,"hey"],
+    [/giye/gi,"girl"],
+    [/girll/gi,"girl"],
+    [/see today/gi,"today"],
+    [/bday/gi,"birthday"]
+  ];
+  replacements.forEach(function(pair){ txt=txt.replace(pair[0],pair[1]); });
+  txt=txt.replace(/\s+/g," ").trim();
+  txt=txt.replace(/\bi\b/g,"I");
+
+  if(/\bhey girl\b/i.test(txt) && /\bbirthday\b/i.test(txt)){
+    return "Hey girl, what's up? Just wanted to wish you a happy birthday today!";
+  }
+  if(/\bbirthday\b/i.test(txt) && /\b(hey|hello|hi)\b/i.test(txt)){
+    return "Hey, happy birthday! Hope your day is full of love, fun, and good energy.";
+  }
+  if(/\bwhats up\b/i.test(txt) || /\bwhat's up\b/i.test(txt)){
+    txt=txt.replace(/\bwhats up\b/i,"what's up");
+  }
+
+  var words=txt.split(/\s+/).filter(Boolean);
+  if(words.length<=6){
+    var shortMap={
+      "helps people":"Helps people.",
+      "happy birthday":"Happy birthday!",
+      "thinking of you":"Thinking of you today.",
+      "proud of you":"I am proud of you.",
+      "miss you":"I miss you.",
+      "love you":"Love you."
+    };
+    var key=txt.toLowerCase().replace(/[.!?]/g,"").trim();
+    if(shortMap[key]) return shortMap[key];
+  }
+
+  function sentenceCase(str){
+    str=(str||"").replace(/\s+/g," ").trim();
+    if(!str)return "";
+    str=str.charAt(0).toUpperCase()+str.slice(1);
+    str=str.replace(/\bi\b/g,"I");
+    str=str.replace(/\bi'm\b/g,"I'm");
+    str=str.replace(/\bi've\b/g,"I've");
+    str=str.replace(/\bi'll\b/g,"I'll");
+    return str;
+  }
+
+  var parts=txt.split(/[.!?]+/).map(function(p){return p.trim();}).filter(Boolean);
+  var merged=[];
+  for(var i=0;i<parts.length;i++){
+    var cur=parts[i];
+    var next=parts[i+1]||"";
+    var curWords=cur.split(/\s+/).filter(Boolean).length;
+    var nextWords=next.split(/\s+/).filter(Boolean).length;
+    if(next && curWords<=2 && nextWords<=5){
+      merged.push((cur+" "+next).trim());
+      i++;
+    }else{
+      merged.push(cur);
+    }
+  }
+
+  var out=merged.map(sentenceCase).join(" ").replace(/\s+/g," ").trim();
+  out=out.replace(/\s+([,.;!?])/g,"$1");
+  out=out.replace(/([,;:])([^\s])/g,"$1 $2");
+  out=out.replace(/\bbirthday happy\b/i,"happy birthday");
+
+  if(/\bbirthday\b/i.test(out) && !/[!?]$/.test(out)){
+    out=out.replace(/\.?$/, "!");
+  }else if(out && !/[.!?]$/.test(out)){
+    out+=".";
+  }
+
+  return out;
+}
+
+function rewriteCustomCaption(){
+  var el=document.getElementById("custom-modal-txt");
+  var status=document.getElementById("custom-rewrite-status");
+  if(!el)return;
+  var original=(el.value||"").trim();
+  if(!original){alert("Type something first.");return;}
+
+  var out=smartProofreadText(original);
+
+  if(activeProfile==="personal"){
+    out=out.replace(/\bim\b/gi,"I'm").replace(/\bive\b/gi,"I've");
+  }
+
+  if(/^Helps people[.!?]*$/i.test(out)){
+    out="Helps people.";
+  }
+
+  el.value=out;
+  if(status){
+    status.textContent=(out===original) ? "No major changes were needed." : "Proofread and polished.";
+    setTimeout(function(){ status.textContent=""; },2500);
+  }
+}
+
+function openCustomModalPreview(){
+  var txt=(document.getElementById("custom-modal-txt").value||"").trim();
+  if(!txt){alert("Type your caption first!");return;}
+  closeCustomModal();openPreview(txt,"");
+}
+
+function fileToDataURL(file,cb){
+  if(!file){return;}
+  var isImage=file.type&&file.type.indexOf("image/")===0;
+  if(!isImage){var rr=new FileReader();rr.onload=function(e){cb(e.target.result);};rr.readAsDataURL(file);return;}
+  var fr=new FileReader();
+  fr.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var max=1600,w=img.width,h=img.height;
+      if(w>h&&w>max){h=Math.round(h*(max/w));w=max;}
+      else if(h>=w&&h>max){w=Math.round(w*(max/h));h=max;}
+      var cv=document.createElement("canvas");cv.width=w;cv.height=h;
+      var ctx=cv.getContext("2d");ctx.drawImage(img,0,0,w,h);
+      try{cb(cv.toDataURL("image/jpeg",0.9));}catch(e){cb(ev.target.result);}
+    };
+    img.onerror=function(){cb(ev.target.result);};
+    img.src=ev.target.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+// INIT
+function initApp(){
+  try{
+    ensureStarterPack("business"); ensureStarterPack("personal"); ensureStarterPack("other");
+switchProfile("business");
+var np=document.getElementById("new-pillar-name"); if(np){ np.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); createPillar(); } }); }
+    renderSaved();
+  // Event listeners that need DOM
+
+document.getElementById("quick-logo-inp").onchange=function(ev){
+  var file=ev.target.files[0];if(!file)return;
+  fileToDataURL(file,function(data){
+    LOGO=data;settings.logo=LOGO;
+    try{localStorage.setItem("thp_s_"+activeProfile,JSON.stringify(settings));}catch(e){}
+    updateProfileUI();
+  });
+};
+document.getElementById("logo-inp").onchange=function(ev){
+  var file=ev.target.files[0];if(!file)return;
+  fileToDataURL(file,function(data){LOGO=data;settings.logo=LOGO;updateProfileUI();});
+};
+document.getElementById("photo-inp").onchange=function(ev){
+  var file=ev.target.files[0];if(!file)return;
+  fileToDataURL(file,function(data){photoURL=data;bgPosX=50;bgPosY=50;bgZoom=100;var x=document.getElementById("bgx-sl"),y=document.getElementById("bgy-sl"),z=document.getElementById("bgz-sl");if(x)x.value=bgPosX;if(y)y.value=bgPosY;if(z)z.value=bgZoom;updatePhotoControlLabels();document.getElementById("photo-lbl").textContent=file.name;document.getElementById("remove-photo-btn").style.display="block";document.getElementById("img-container").style.display="none";renderPreview();});
+};
+document.getElementById("custom-modal").onclick=function(e){if(e.target===this)closeCustomModal();};
+  }catch(err){
+    var e=document.createElement("div");
+    e.style.cssText="position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:12px;font-size:12px;z-index:99999;word-break:break-all";
+    e.textContent="Error: "+err.message+" | "+err.stack;
+    document.body.appendChild(e);
+  }
+}
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",initApp);
+}else{
+  initApp();
+}
+
+</script>
+
+<script>
+(function(){
+  var toastTimer=null;
+  window.pngShowToast=function(msg){
+    var t=document.getElementById('png-toast');
+    if(!t) return;
+    t.textContent=msg||'Done';
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1700);
+  };
+  window.pngRefreshBar=function(){
+    var main=document.getElementById('main-screen');
+    var preview=document.getElementById('preview-screen');
+    var inPreview=preview && preview.style.display!=='none';
+    var hasCurrent=typeof curCap==='string' && !!curCap.trim();
+    var hasCards=!!document.querySelector('.cap-card');
+    var btnGen=document.getElementById('png-act-generate');
+    var btnPrev=document.getElementById('png-act-preview');
+    var btnSave=document.getElementById('png-act-save');
+    if(!btnGen||!btnPrev||!btnSave) return;
+    btnGen.textContent=inPreview ? 'Back' : 'Generate';
+    btnPrev.textContent=inPreview ? 'Refresh' : 'Preview';
+    btnSave.textContent=inPreview ? 'Save' : 'Quick Save';
+    btnPrev.disabled=(!inPreview && !(hasCurrent||hasCards));
+    btnSave.disabled=(!inPreview && !hasCurrent);
+  };
+  window.pngQuickGenerate=function(){
+    var preview=document.getElementById('preview-screen');
+    var inPreview=preview && preview.style.display!=='none';
+    if(inPreview){ backToMain(); pngShowToast('Back to editor'); pngRefreshBar(); return; }
+    try{ generate(); pngShowToast('Captions generated'); }catch(e){ pngShowToast('Could not generate yet'); }
+    setTimeout(pngRefreshBar, 60);
+  };
+  window.pngQuickPreview=function(){
+    var preview=document.getElementById('preview-screen');
+    var inPreview=preview && preview.style.display!=='none';
+    if(inPreview){
+      try{ renderPreview(); pngShowToast('Preview refreshed'); }catch(e){ pngShowToast('Preview refreshed'); }
+      return;
+    }
+    if(typeof curCap==='string' && curCap.trim()){
+      try{ openPreview(curCap, curPillarId||''); pngShowToast('Opened preview'); }catch(e){}
+      setTimeout(pngRefreshBar, 60);
+      return;
+    }
+    var firstPreview=document.querySelector('.cap-card .cap-btn');
+    if(firstPreview){ firstPreview.click(); pngShowToast('Opened preview'); setTimeout(pngRefreshBar, 60); return; }
+    pngShowToast('Generate or choose a caption first');
+  };
+  window.pngQuickSave=function(){
+    var preview=document.getElementById('preview-screen');
+    var inPreview=preview && preview.style.display!=='none';
+    if(inPreview){
+      try{ doSave(); pngShowToast('Saved caption'); }catch(e){ pngShowToast('Could not save'); }
+      return;
+    }
+    if(typeof curCap==='string' && curCap.trim()){
+      try{ openPreview(curCap, curPillarId||''); setTimeout(function(){ doSave(); pngShowToast('Saved caption'); pngRefreshBar(); }, 80); }catch(e){ pngShowToast('Open a caption first'); }
+      return;
+    }
+    pngShowToast('Open a caption first');
+  };
+
+  function wrap(fnName, before, after){
+    if(typeof window[fnName]!=='function') return;
+    var old=window[fnName];
+    window[fnName]=function(){
+      if(before) before.apply(this, arguments);
+      var out=old.apply(this, arguments);
+      if(after) after.apply(this, arguments);
+      return out;
+    };
+  }
+  wrap('generate', null, function(){ setTimeout(pngRefreshBar, 40); });
+  wrap('openPreview', null, function(){ setTimeout(pngRefreshBar, 40); });
+  wrap('backToMain', null, function(){ setTimeout(pngRefreshBar, 40); });
+  wrap('doCopyBtn', null, function(){ pngShowToast('Copied to clipboard'); });
+  wrap('doSave', null, function(){ pngShowToast('Saved to captions'); setTimeout(pngRefreshBar, 40); });
+  wrap('doDownload', null, function(){ pngShowToast('Building your post'); });
+  wrap('saveSettings', null, function(){ pngShowToast('Settings saved'); });
+  wrap('switchProfile', null, function(){ pngShowToast('Profile updated'); setTimeout(pngRefreshBar, 40); });
+  wrap('go', null, function(){ setTimeout(pngRefreshBar, 40); });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(pngRefreshBar, 180);
+    document.addEventListener('click', function(ev){
+      var txt=(ev.target && ev.target.textContent || '').trim();
+      if(txt==='Preview') pngShowToast('Opened preview');
+      if(txt==='Copy') pngShowToast('Copied to clipboard');
+      if(txt==='Save Settings') pngShowToast('Settings saved');
+    }, true);
+  });
+})();
+
+function makeSimpleCard(title, body){
+  var d=document.createElement("div");
+  d.className="cap-card";
+  d.innerHTML='<div class="cap-inner"><div class="cap-pillar">'+title+'</div><p class="cap-text">'+body.replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</p></div><div class="cap-actions"></div>';
+  var acts=d.querySelector(".cap-actions");
+  var b1=document.createElement("button"); b1.className="cap-btn"; b1.textContent="Use in Writer";
+  b1.onclick=function(){
+    var box=document.getElementById("custom-modal-txt");
+    if(box){ box.value = body; openCustomModal(); }
+    if(typeof showToast==="function") showToast("Hook moved to writer");
+  };
+  var b2=document.createElement("button"); b2.className="cap-btn"; b2.textContent="Copy";
+  b2.onclick=function(){ copyText(body,b2,"Copy"); if(typeof showToast==="function") showToast("Hook copied"); };
+  acts.appendChild(b1); acts.appendChild(b2);
+  return d;
+}
+function generateHooks(){
+  var topic=(document.getElementById("ai-topic").value||"").trim();
+  var p1id=(document.getElementById("ai-p1").value||"");
+  var p1=p1id?getActivePillars().find(function(p){return p.id===p1id;}):null;
+  var pillarLabel=p1 ? p1.label : "your topic";
+  var base=(topic || pillarLabel || "your topic").trim();
+  var lower=base.toLowerCase();
+  var hooks=[
+    "Nobody talks about this when it comes to "+lower+".",
+    "3 things people get wrong about "+lower+".",
+    "What I wish more people understood about "+lower+".",
+    "If you are struggling with "+lower+", read this.",
+    "A simple reminder about "+lower+" that might help today.",
+    "This changed how I think about "+lower+"."
+  ];
+  // make more niche-sensitive hooks
+  if(/real estate|home|buyer|seller|listing|property/.test(lower)){
+    hooks = [
+      "3 things first-time buyers need to know right now.",
+      "What sellers should fix before listing their home.",
+      "The market shift people are missing this week.",
+      "One home-buying mistake that costs people money.",
+      "What I wish more buyers asked before touring homes.",
+      "A quick real-estate tip that saves stress later."
+    ];
+  } else if(/parent|family|kid|child|school/.test(lower)){
+    hooks = [
+      "A parenting reminder someone needed today.",
+      "What healthy support can look like for kids.",
+      "A small family habit that changes everything.",
+      "What I want my kids to remember about this season.",
+      "A simple parenting shift that reduces stress.",
+      "One reminder for parents doing their best."
+    ];
+  } else if(/game|athlete|sport|team|practice|study/.test(lower)){
+    hooks = [
+      "Game day starts with your mindset.",
+      "One thing athletes need to hear before practice.",
+      "What discipline looks like when nobody is watching.",
+      "A study-and-sports reminder for the long week.",
+      "Small habits create big wins over time.",
+      "Locked in: focus first, results second."
+    ];
+  }
+  var out=document.getElementById("hook-out");
+  if(!out) return;
+  out.innerHTML="";
+  hooks.slice(0,4).forEach(function(h, i){
+    out.appendChild(makeSimpleCard("Hook "+(i+1), h));
+  });
+  if(typeof showToast==="function") showToast("Hooks generated");
+}
+
+</script>
+
+</body>
+</html>
